@@ -1,0 +1,28 @@
+{
+  "files": {
+    "Rating_commands/v1.py": [
+      {
+        "id": "b2e229f0-40cf-4765-9ab3-d8e4b56d79d6",
+        "line": 123,
+        "version": 1642,
+        "index": 3938
+      }
+    ],
+    "Rating_commands/v2.py": [
+      {
+        "id": "95c59c75-9849-407c-b6d3-dbd678f478a0",
+        "line": 125,
+        "version": 3301,
+        "index": 2603
+      }
+    ],
+    "main.py": [
+      {
+        "id": "2598032e-3c36-4095-ab3f-cc448538ad85",
+        "line": 202,
+        "version": 8249,
+        "index": 5607
+      }
+    ]
+  }
+}
