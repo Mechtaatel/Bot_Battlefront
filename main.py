@@ -6,13 +6,10 @@ import discord
 from discord.ext import commands
 from discord.ui import Button, View, Select
 
-import requests
-import time
-from background import keep_alive #импорт функции для поддержки работоспособности
-
 
 from Rating_commands.v1 import button1v1View
 from Rating_commands.v2 import button2v2View
+from Rating_commands.v4 import button4v4View
 from Rating_commands.Rating_Role import Rating_Role_View
 #from Rating_commands.reg import check_name_and_reg
 
@@ -29,7 +26,7 @@ intents.typing = False
 intents.presences = False
 bot = discord.Bot()
 
-version_bot = 1.1.1
+
   
 
 # Создайте нового клиента и подключитесь к серверу
@@ -48,8 +45,7 @@ except Exception as e:
 
 
 
-#Создайте экземпляр команды с косой чертой
-logging.basicConfig(level=logging.INFO)
+
 
 
 @bot.event
@@ -77,6 +73,10 @@ async def on_ready():
 #     print(f'{ctx.author} Попытался выполнить команду {ctx.message.content}')
 
   # Для других типов ошибок вы можете добавить сюда дополнительную логику обработки.
+
+
+
+
 
 
 
@@ -129,7 +129,8 @@ async def reg(ctx, name: str, hourse: int):
       'EA_Name': name,
       'Rating_1v1': rating,
       'Rating_2v2': rating,
-      'Rating_4v4': rating
+      'Rating_4v4': rating,
+      'Ban': 'off'
       }
       
       collection.update_one({'_id': user_id},{"$set":new_data}, upsert=True)
@@ -138,6 +139,68 @@ async def reg(ctx, name: str, hourse: int):
            """Поздравляем вы зарегестрированы""")
 
 
+@bot.command()
+async def test(ctx):
+  button1 = Button(label="Test", style=discord.ButtonStyle.green,custom_id='test1')
+  button2 = Button(label="Test2", style=discord.ButtonStyle.red,custom_id='test3')
+  button3 = Button(label="Test2", style=discord.ButtonStyle.red,custom_id='test')
+  button4 = Button(label="Test2", style=discord.ButtonStyle.red,custom_id='test4')
+
+  view = View()
+  async def add_button(interaction):
+    view.remove_item(button1)
+    view.add_item(button2)
+    view.add_item(button3)
+    view.add_item(button4)
+    print(view.children)
+    await interaction.response.edit_message(view=view)
+    
+    
+  async def add_button2(interaction):
+    view.remove_item(button2)
+    view.remove_item(button3)
+    view.remove_item(button4)
+    
+    view.add_item(button1)
+    await interaction.response.edit_message(view=view)
+    print(view.children)
+        
+
+  button2.callback = add_button2
+  print(view.children)значения в 
+  button1.callback = add_button
+  view.add_item(button1)
+  await ctx.respond("Test",view=view)
+  
+
+
+
+
+@bot.command()
+async def v4(ctx):
+  check_author = collection.find_one({"_id": str(ctx.author.id)})
+  if check_author:
+
+    AuthorMG = collection.find_one({"_id": str(ctx.author.id)})
+    embed = discord.Embed(title=
+                          '',
+       description=f'Игрок <@{ctx.author.id}> начинает поиск игроков в режим 4 на 4',
+      color=0x1c2951)
+    embed.add_field(name="",
+                    value="",
+                    inline=False)
+    embed.add_field(name=f"`{AuthorMG['Rating_4v4']}`",
+                    value=f"`{AuthorMG['EA_Name']}`\n`___`\n`___`\n`___`",
+                    inline=True)
+    embed.add_field(name="`0`",
+                    value="`___`\n`___`\n`___`\n`___`",
+                    inline=True)
+    embed.set_footer(text="")
+    view=button4v4View(ctx,collection,AuthorMG)
+    await ctx.respond('<@&1167993718704447519>.',embed=embed,view=view)
+  else:
+    await ctx.respond(
+      """Вы не зарегестрированы.\nДля регестрации воспользуйтесь коммандой /reg""")
 
 
 
@@ -147,7 +210,8 @@ async def reg(ctx, name: str, hourse: int):
 async def v2(ctx):
   check_author = collection.find_one({"_id": str(ctx.author.id)})
   if check_author:
-    Author = collection.find_one({"_id": str(ctx.author.id)})
+    
+    AuthorMG = collection.find_one({"_id": str(ctx.author.id)})
     embed = discord.Embed(title=
                           '',
        description=f'Игрок <@{ctx.author.id}> начинает поиск игроков в режим 2 на 2',
@@ -155,14 +219,14 @@ async def v2(ctx):
     embed.add_field(name="",
                     value="",
                     inline=False)
-    embed.add_field(name=f"`{Author['Rating_2v2']}`",
-                    value=f"`{Author['EA_Name']}`\n`___`",
+    embed.add_field(name=f"`{AuthorMG['Rating_2v2']}`",
+                    value=f"`{AuthorMG['EA_Name']}`\n`___`",
                     inline=True)
     embed.add_field(name="`0`",
-                    value=f"`___`\n`___`",
+                    value="`___`\n`___`",
                     inline=True)
     embed.set_footer(text="")
-    view=button2v2View(ctx,collection,Author)
+    view=button2v2View(ctx,collection,AuthorMG)
     await ctx.respond('<@&1167993718704447519>.',embed=embed,view=view)
   else:
     await ctx.respond(
@@ -247,5 +311,4 @@ async def level_join(ctx):
 
 
 
-keep_alive()
 bot.run(os.environ['token'])

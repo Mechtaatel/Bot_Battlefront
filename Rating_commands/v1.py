@@ -155,11 +155,10 @@ class ratingV1Button(discord.ui.View):
     S_a = 1
     S_b = 0
 
-    if S_a + S_b == 1:
-        R_a = A + K_a * (S_a - E_a)
-        R_b = B + K_b * (S_b - E_b)
-    else:
-        print('skatina, ti vvel ne pravilno')
+
+    R_a = A + K_a * (S_a - E_a)
+    R_b = B + K_b * (S_b - E_b)
+
     if R_a < 100:
         R_a = 100
     if R_b < 100:
