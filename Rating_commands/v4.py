@@ -1,7 +1,7 @@
-import discord
-from discord.ui import Button, View
-import json
 import math
+
+import discord
+from discord.ui import View
 
 
 class button4v4View(View):
@@ -9,106 +9,133 @@ class button4v4View(View):
   def __init__(self, ctx, collection, Author, *args, **kwargs):
     # Передайте игрока в качестве аргумента конструктору
     super().__init__(*args, **kwargs, timeout=6000)
+
+    self.set = 2
+
+    
     self.ctx = ctx
     self.collection = collection
     self.Author = Author
     self.view = View()
     self.lose_press = 0
     self.win_press = 0
+    
+    self.remove_item(self.lose)
+    self.remove_item(self.win)
+    self.remove_item(self.close)
+    self.remove_item(self.repeat)
+    self.remove_item(self.remove)
 
     self.ReaL = []
     self.j = 0
     self.gen_team1 = 0
     self.gen_team2 = 0
 
-    self.button_win = Button(label='Win', style=discord.ButtonStyle.green)
-    self.button_lose = Button(label='Lose', style=discord.ButtonStyle.red)
-    self.button_remove = Button(label='remove')
-    self.button_repeat = Button(label='Repeat',
-                                style=discord.ButtonStyle.green)
-    self.button_close = Button(label='Close', style=discord.ButtonStyle.red)
-
     self.DontAgain = 'Вы уже состоите в команде'
     self.PlzReg = "Вы не зарегестрированы.\nДля регестрации воспользуйтесь коммандой /reg"
 
-    Au = {
-        'id': ctx.author.id,
-        'n': f"{Author['EA_Name']}",
-        'r': Author['Rating_4v4'],
-        't': 0
-    }
     self.Dictionaries_Team = {
-        'au': Au,
+        'au': {
+            'id': ctx.author.id,
+            'n': Author['EA_Name'],
+            'r': Author['Rating_4v4'],
+            't': 0,
+            'p': '⚫'
+        },
         't12': {
             'id': 0,
             'n': "`___`",
             'r': 0,
-            't': 0
+            't': 0,
+            'p': '⚫'
         },
         't13': {
             'id': 0,
             'n': "`___`",
             'r': 0,
-            't': 0
+            't': 0,
+            'p': '⚫'
         },
         't14': {
             'id': 0,
             'n': "`___`",
             'r': 0,
-            't': 0
+            't': 0,
+            'p': '⚫'
         },
         't21': {
             'id': 0,
             'n': "`___`",
             'r': 0,
-            't': 1
+            't': 1,
+            'p': '⚫'
         },
         't22': {
             'id': 0,
             'n': "`___`",
             'r': 0,
-            't': 1
+            't': 1,
+            'p': '⚫'
         },
         't23': {
             'id': 0,
             'n': "`___`",
             'r': 0,
-            't': 1
+            't': 1,
+            'p': '⚫'
         },
         't24': {
             'id': 0,
             'n': "`___`",
             'r': 0,
-            't': 1
+            't': 1,
+            'p': '⚫'
         }
     }
 
-    for key in self.Dictionaries_Team:
-      self.Dictionaries_Team[key]['p'] = '⚫'
-
-    for key, value in self.Dictionaries_Team.items():
-      if value['t'] == 0:
-        self.gen_team1 += value['r']
-      elif value['t'] == 1:
-        self.gen_team2 += value['r']
+    
 
     self.list_team = [ctx.author.id]
-
+  @discord.ui.button(label="repeat",
+   style=discord.ButtonStyle.grey,
+   custom_id="repiat")
   async def repeat(self, button, interaction):
     if interaction.user.id in self.list_team and interaction.user.id not in self.ReaL:
+      dt = self.Dictionaries_Team
       self.ReaL.append(interaction.user.id)
       self.j -= 1
       current_embed = interaction.message.embeds[0]
       current_embed.set_footer(
-          text=f"`Желающих повторить:{abs(self.j-8)} | 8`")
+          text=f"`Желающих повторить:{abs(self.j-self.set)} | {self.set}`")
       if self.j == 0:
+        current_embed.set_field_at(
+          1,
+          name=
+          f"`{dt['au']['r'] + dt['t12']['r'] + dt['t13']['r'] + dt['t14']['r']}`",
+          value=f"""
+{dt['au']['p']}`{dt['au']['n']}`
+{dt['t12']['p']}`{dt['t12']['n']}`
+{dt['t13']['p']}`{dt['t13']['n']}`
+{dt['t14']['p']}`{dt['t14']['n']}`""",
+          inline=True)
+        current_embed.set_field_at(
+          2,
+          name=
+          f"`{dt['t21']['r'] + dt['t22']['r'] + dt['t23']['r'] + dt['t24']['r']}`",
+          value=f"""
+{dt['t21']['p']}`{dt['t21']['n']}`
+{dt['t22']['p']}`{dt['t22']['n']}`
+{dt['t23']['p']}`{dt['t23']['n']}`
+{dt['t24']['p']}`{dt['t24']['n']}`""",
+          inline=True)
         current_embed.set_footer(text='')
-        self.add_item(self.button_win)
-        self.add_item(self.button_lose)
-        self.add_item(self.button_remove)
-        self.remove_item(self.button_repeat)
-        self.remove_item(self.button_close)
-        for key, value in self.Dictionaries_Team.items():
+        self.add_item(self.win)
+        self.add_item(self.lose)
+        self.add_item(self.remove)
+        self.remove_item(self.repeat)
+        self.remove_item(self.close)
+        self.ReaL.clear()
+        for _key, value in self.Dictionaries_Team.items():
           value['p'] = '⚫'
         await interaction.response.edit_message(embed=current_embed, view=self)
 
@@ -120,7 +147,9 @@ class button4v4View(View):
     else:
       await interaction.response.send_message("Вы не состоите в команде",
                                               ephemeral=True)
-
+  @discord.ui.button(label="close",
+   style=discord.ButtonStyle.red,
+   custom_id="close")
   async def close(self, button, interaction):
     if interaction.user.id in self.list_team:
       await interaction.response.edit_message(view=None)
@@ -146,28 +175,40 @@ class button4v4View(View):
     R_a = math.ceil(R_a)
     self.collection.update_one({"_id": str(self.value['id'])},
                                {"$set": {
-                                   "Rating_2v2": R_a
+                                   "Rating_4v4": R_a
                                }})
     self.interaction = interaction
     self.j += 1
-    if self.j == 8:
-      self.remove_item(self.button_win)
-      self.remove_item(self.button_lose)
-      self.remove_item(self.button_remove)
-      self.add_item(self.button_repeat)
-      self.add_item(self.button_close)
+    if self.j == self.set:
+      self.remove_item(self.win)
+      self.remove_item(self.lose)
+      self.remove_item(self.remove)
+      self.add_item(self.repeat)
+      self.add_item(self.close)
+
+      await interaction.response.edit_message(embed=self.C_E, view=self)
       
-      await interaction.response.edit_message(view=self)
 
   async def before_elo(self, interaction):
-    for key, value in self.Dictionaries_Team.items():
+    for _key, value in self.Dictionaries_Team.items():
+      if value['t'] == 0:
+        self.gen_team1 += value['r']
+      elif value['t'] == 1:
+        self.gen_team2 += value['r']
+    for _key, value in self.Dictionaries_Team.items():
       if value['t'] == 0:
         self.value = value
-        self.oppR = self.gen_team2
+        self.oppR = self.gen_team2 / (self.set / 2)
+        print(f'Team 2 {self.oppR}')
+        if self.j == self.set:
+          break
         await self.EloR(interaction)
       elif value['t'] == 1:
         self.value = value
-        self.oppR = self.gen_team1
+        self.oppR = self.gen_team1/ (self.set / 2)
+        print(f'Team 1 {self.oppR}')
+        if self.j == self.set:
+          break
         await self.EloR(interaction)
 
   async def apdate_embed_gameplay(self, interaction):
@@ -201,24 +242,25 @@ class button4v4View(View):
         inline=True)
 
     current_embed.set_footer(text='')
+    self.C_E = current_embed
 
-    for key, value in dt.items():
+    for _key, value in dt.items():
       if value['t'] == 0 and value['p'] == '🟢':
         team1press += 1
-        if team1press == 4:
+        if team1press == self.set / 2:
           team1wl = 1
 
       elif value['t'] == 1 and value['p'] == '🟢':
         team2press += 1
-        if team2press == 4:
+        if team2press == self.set / 2:
           team2wl = 1
       elif value['t'] == 0 and value['p'] == '🔴':
         team1press += 1
-        if team1press == 4:
+        if team1press == self.set / 2:
           team1wl = 0
       elif value['t'] == 1 and value['p'] == '🔴':
         team2press += 1
-        if team2press == 4:
+        if team2press == self.set / 2:
           team2wl = 0
 
     if team1wl == 1 and team2wl == 0:
@@ -227,17 +269,17 @@ class button4v4View(View):
           dt[key]['WorL'] = 1
         elif value['t'] == 0:
           dt[key]['WorL'] = 0
-      await self.EloR(interaction)
+      await self.before_elo(interaction)
     elif team1wl == 0 and team2wl == 1:
       for key, value in dt.items():
         if value['t'] == 1:
           dt[key]['WorL'] = 0
         elif value['t'] == 0:
           dt[key]['WorL'] = 1
-      await self.EloR(interaction)
+      await self.before_elo(interaction)
     else:
       await interaction.response.edit_message(embed=current_embed, view=self)
-
+  @discord.ui.button(label="win", style=discord.ButtonStyle.green)
   async def win(self, button, interaction):
     totach = "Вы уже нажали на кнопку"
     # Проверяем что бы нажимали именно участники.
@@ -303,6 +345,7 @@ class button4v4View(View):
       await interaction.response.send_message('Вы не состоите в команде',
                                               ephemeral=True)
 
+  @discord.ui.button(label="lose",style=discord.ButtonStyle.red)
   async def lose(self, button, interaction):
     totach = "Вы уже нажали на кнопку"
     if interaction.user.id in self.list_team:
@@ -355,7 +398,7 @@ class button4v4View(View):
           await self.apdate_embed_gameplay(interaction)
         else:
           await interaction.response.send_message(totach, ephemeral=True)
-      elif interaction.user.id == self.Dictionaries_Team['t12']['id']:
+      elif interaction.user.id == self.Dictionaries_Team['t24']['id']:
         if self.Dictionaries_Team['t24']['p'] == '⚫':
           self.Dictionaries_Team['t24']['p'] = '🔴'
           await self.apdate_embed_gameplay(interaction)
@@ -364,7 +407,9 @@ class button4v4View(View):
     else:
       await interaction.response.send_message('Вы не состоите в команде',
                                               ephemeral=True)
-
+  @discord.ui.button(label="remove",
+   style=discord.ButtonStyle.grey,
+   custom_id="remove")
   async def remove(self, button, interaction):
     if interaction.user.id in self.list_team:
       if interaction.user.id == self.Dictionaries_Team['au']['id']:
@@ -416,23 +461,25 @@ class button4v4View(View):
         value=
         f"`{dt['t21']['n']}`\n`{dt['t22']['n']}`\n`{dt['t23']['n']}`\n`{dt['t24']['n']}`",
         inline=True)
-    if len(self.list_team) == 8:
+    if len(self.list_team) == self.set:
       self.remove_item(self.join1)
       self.remove_item(self.join2)
       self.remove_item(self.exit)
-      self.add_item(self.button_win)
-      self.add_item(self.button_lose)
-      self.add_item(self.button_remove)
+      self.add_item(self.win)
+      self.add_item(self.lose)
+      self.add_item(self.remove)
       await interaction.message.edit(embed=current_embed, view=self)
 
     else:
       await interaction.response.edit_message(embed=current_embed, view=self)
 
-  async def dictonaries_appdate(self, interaction, check_author, ap):
+  async def dictonaries_appdate(self, interaction, check_author, ap, t):
     self.Dictionaries_Team[ap] = {
         'id': interaction.user.id,
         'n': check_author['EA_Name'],
-        'r': check_author['Rating_4v4']
+        'r': check_author['Rating_4v4'],
+        't': t,
+        'p': '⚫'
     }
     self.list_team.append(interaction.user.id)
     await self.apdate_embed(interaction)
@@ -450,13 +497,16 @@ class button4v4View(View):
       else:
         if self.Dictionaries_Team['t12']['n'] == '`___`':
           ap = 't12'
-          await self.dictonaries_appdate(interaction, check_author, ap)
+          t = 0
+          await self.dictonaries_appdate(interaction, check_author, ap, t)
         elif self.Dictionaries_Team['t13']['n'] == '`___`':
           ap = 't13'
-          await self.dictonaries_appdate(interaction, check_author, ap)
+          t = 0
+          await self.dictonaries_appdate(interaction, check_author, ap, t)
         elif self.Dictionaries_Team['t14']['n'] == '`___`':
           ap = 't14'
-          await self.dictonaries_appdate(interaction, check_author, ap)
+          t = 0
+          await self.dictonaries_appdate(interaction, check_author, ap, t)
     else:
       await interaction.response.send_message(self.PlzReg, ephemeral=True)
 
@@ -472,17 +522,21 @@ class button4v4View(View):
       else:
         if self.Dictionaries_Team['t21']['n'] == '`___`':
           ap = 't21'
-          await self.dictonaries_appdate(interaction, check_author, ap)
+          t = 1
+          await self.dictonaries_appdate(interaction, check_author, ap, t)
         elif self.Dictionaries_Team['t22']['n'] == '`___`':
           ap = 't22'
-          await self.dictonaries_appdate(interaction, check_author, ap)
+          t = 1
+          await self.dictonaries_appdate(interaction, check_author, ap, t)
         elif self.Dictionaries_Team['t23']['n'] == '`___`':
           ap = 't23'
-          await self.dictonaries_appdate(interaction, check_author, ap)
+          t = 1
+          await self.dictonaries_appdate(interaction, check_author, ap, t)
           self.list_team.append(interaction.user.id)
         elif self.Dictionaries_Team['t24']['n'] == '`___`':
           ap = 't24'
-          await self.dictonaries_appdate(interaction, check_author, ap)
+          t = 1
+          await self.dictonaries_appdate(interaction, check_author, ap, t)
 
     else:
       await interaction.response.send_message(self.PlzReg, ephemeral=True)
@@ -511,3 +565,4 @@ class button4v4View(View):
     else:
       await interaction.response.send_message('Вы не состоите в команде',
                                               ephemeral=True)
+

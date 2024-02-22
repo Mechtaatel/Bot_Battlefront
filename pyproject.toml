@@ -12,6 +12,7 @@ requests = "^2.31.0"
 background = "^0.2.1"
 flask = "^3.0.0"
 options = "^1.4.10"
+discord-py = "^2.3.2"
 
 [tool.pyright]
 # https://github.com/microsoft/pyright/blob/main/docs/configuration.md

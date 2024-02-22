@@ -10,20 +10,28 @@ from Rating_commands.v1 import button1v1View
 from Rating_commands.v2 import button2v2View
 from Rating_commands.v4 import button4v4View
 from Rating_commands.Rating_Role import Rating_Role_View
+from Rating_commands.check_role import check_role
 #from Rating_commands.reg import check_name_and_reg
 
 import pymongo
 from pymongo import MongoClient
 from pymongo.mongo_client import MongoClient
 
-intents = discord.Intents.default()
+intents = discord.Intents.all()
 intents.members = True
 intents.typing = False
 intents.presences = False
 
 bot = discord.Bot(intents=intents)
 
-role_forse_s = 1142846260521472054
+
+#channel
+c_rating = 1205086646517633044
+
+
+
+#role
+r_forse_s = 1142846260521472054
 
 # Создайте нового клиента и подключитесь к серверу
 client = MongoClient(os.environ['mongo'])
@@ -65,10 +73,13 @@ async def on_ready():
 # Для других типов ошибок вы можете добавить сюда дополнительную логику обработки.
 
 
+
+
+
 @bot.event
 async def on_member_join(member):
   guild = member.guild  # Получить сервер, к которому присоединился участник
-  role = guild.get_role(role_forse_s)
+  role = guild.get_role(r_forse_s)
   # Добавляем роль только что присоединившемуся участнику
   await member.add_roles(role)
 
@@ -77,6 +88,13 @@ async def on_member_join(member):
   #хотите отправить приветственное сообщение
   #await channel.send(f'Welcome to the server, {member.mention}!')
   # Отправьте приветственное сообщение на указанный канал
+
+
+@bot.command()
+async def switch(ctx, arg: str):
+  if arg == 'Dark side' or 'dark side' or 'Dark_side' or 'dark_side' or 'darkside':
+    side = 'D'
+    await()
 
 
 @bot.command(description="""Регистрация. В пункте Name: введите свой ник.
@@ -127,7 +145,8 @@ async def reg(ctx, name: str, hourse: int):
           'Rating_1v1': rating,
           'Rating_2v2': rating,
           'Rating_4v4': rating,
-          'Ban': 'off'
+          'Ban': 'off',
+          'Role': 'L'
       }
 
       collection.update_one({'_id': user_id}, {"$set": new_data}, upsert=True)
