@@ -10,7 +10,7 @@ from Rating_commands.v1 import button1v1View
 from Rating_commands.v2 import button2v2View
 from Rating_commands.v4 import button4v4View
 from Rating_commands.Rating_Role import Rating_Role_View
-from Rating_commands.check_role import check_role
+from twitch import twitch
 #from Rating_commands.reg import check_name_and_reg
 
 import pymongo
@@ -24,14 +24,14 @@ intents.presences = False
 
 bot = discord.Bot(intents=intents)
 
-
+# guild
+main_guild = 1071600435607113819
 #channel
 c_rating = 1205086646517633044
 
 
-
 #role
-r_forse_s = 1142846260521472054
+# r_forse_s = 1142846260521472054
 
 # Создайте нового клиента и подключитесь к серверу
 client = MongoClient(os.environ['mongo'])
@@ -39,11 +39,13 @@ client = MongoClient(os.environ['mongo'])
 db = client.get_database('Rating_data_base')
 collection = db['Collection_data']
 # Отправьте пинг, чтобы подтвердить успешное соединение
+
 try:
   client.admin.command('ping')
   print("Пропинговал ваше развертывание. Вы успешно подключились к MongoDB!")
 except Exception as e:
   print(e)
+
 
 
 @bot.event
@@ -75,13 +77,22 @@ async def on_ready():
 
 
 
+@bot.event
+async def twith():
+  print(twitch)
+
+
+
 
 @bot.event
 async def on_member_join(member):
   guild = member.guild  # Получить сервер, к которому присоединился участник
-  role = guild.get_role(r_forse_s)
+  if guild == 1071600435607113819:
+    role = guild.get_role(1142846260521472054)
+    await member.add_roles(role)
   # Добавляем роль только что присоединившемуся участнику
-  await member.add_roles(role)
+  else:
+    print('Не работает')
 
   #channel = guild.get_channel(1142846261196759071)
   # Замените YOUR_WELCOME_CHANNEL_ID фактическим идентификатором канала, на котором вы
@@ -89,12 +100,102 @@ async def on_member_join(member):
   #await channel.send(f'Welcome to the server, {member.mention}!')
   # Отправьте приветственное сообщение на указанный канал
 
+@bot.command()
+async def test(ctx,member: discord.Member):
+  roles = member.roles
+  await ctx.send(member)
+  print(roles)
+  print(member)
+  print(member.id)
+
 
 @bot.command()
 async def switch(ctx, arg: str):
   if arg == 'Dark side' or 'dark side' or 'Dark_side' or 'dark_side' or 'darkside':
     side = 'D'
-    await()
+    await ctx.send_message('no')
+
+
+
+
+
+
+
+
+def sll(check_author):
+  sl=[check_author['Rating_1v1'],check_author['Rating_2v2'],check_author['Rating_4v4']]
+  
+  for i in range(2):
+    for j in range(3-i-1):
+      if sl[j]<sl[j+1]:
+        sl[j], sl[j+1] = sl[j+1], sl[j]
+  return sl
+  
+
+def levelR(r, l):
+  if r > 1200:
+    r -= 400
+    l += 1
+    return levelR(r, l)
+  else:
+    return 
+
+
+async def check_level(ctx, Roles, role, member, guild, level):
+  if role.id in Roles['VIP']:
+    return 'V'
+  elif role in Roles['L']:
+    if level == Roles['L'].index(role.id):
+      return 'L-0'
+    else:
+      member.remove_roles(role)
+      member.add_roles(guild.get_role(Roles['L'][level]))
+      return 'L-1'
+  elif role.id in Roles['D']:
+    if level == Roles['D'].index(role.id):
+      return 'D-0'
+    else:
+      member.remove_roles(role)
+      member.add_roles(guild.get_role(Roles['D'][level]))
+      return 'D-1'
+  elif role.id in Roles['M']:
+    return 'M'
+  
+    
+
+
+  
+
+
+@bot.command()
+async def roleup(ctx):
+  level = 0
+  guild = bot.get_guild(main_guild)
+  
+  check_author = collection.find_one({"_id": str(ctx.author.id)})
+
+  if check_author:
+    sl = sll(check_author)
+    level = levelR(sl[1], 1)
+
+    Roles = json.load(open('Role.json'))
+
+    member = ctx.user
+
+    roles = member.roles
+    role = roles[1]
+    side = await check_level(ctx, Roles, role, member, guild, level)
+    if side == 'V' or side == 'M':
+      await ctx.respond('Вы не нуждаетесь в обновлении роли', ephemeral=True)
+    elif side == "L-0" or side == "D-0":
+      await ctx.respond('Ваша роль соответствует вашему уровню', ephemeral=True)
+    elif side == "L-1" or side == "D-1":
+      await ctx.respond('Ваша роль обновлена', ephemeral=True)
+    
+  else:
+    await ctx.respond(
+      'Вы не зарегестрированы, воспользуйтесь командой /reg',
+      ephemeral=True)
 
 
 @bot.command(description="""Регистрация. В пункте Name: введите свой ник.
@@ -135,7 +236,7 @@ async def reg(ctx, name: str, hourse: int):
     user_document1 = collection.find_one({"EA_Name": name})
     if user_document1:
       await ctx.respond(
-          f"""Имя {name} уже занято пользователем.\nОбратитесь пожалуйста в Администрацию."""
+f"""Имя {name} уже занято пользователем.\nОбратитесь пожалуйста в Администрацию."""
       )
       return ()
     else:
@@ -145,8 +246,7 @@ async def reg(ctx, name: str, hourse: int):
           'Rating_1v1': rating,
           'Rating_2v2': rating,
           'Rating_4v4': rating,
-          'Ban': 'off',
-          'Role': 'L'
+          'Ban': 'off'
       }
 
       collection.update_one({'_id': user_id}, {"$set": new_data}, upsert=True)
@@ -154,53 +254,16 @@ async def reg(ctx, name: str, hourse: int):
       await ctx.respond("""Поздравляем вы зарегестрированы""")
 
 
-@bot.command()
-async def test(ctx):
-  button1 = Button(label="Test",
-                   style=discord.ButtonStyle.green,
-                   custom_id='test1')
-  button2 = Button(label="Test2",
-                   style=discord.ButtonStyle.red,
-                   custom_id='test3')
-  button3 = Button(label="Test2",
-                   style=discord.ButtonStyle.red,
-                   custom_id='test')
-  button4 = Button(label="Test2",
-                   style=discord.ButtonStyle.red,
-                   custom_id='test4')
+  
+    
 
-  view = View()
-
-  async def add_button(interaction):
-    view.remove_item(button1)
-    view.add_item(button2)
-    view.add_item(button3)
-    view.add_item(button4)
-    print(view.children)
-    await interaction.response.edit_message(view=view)
-
-  async def add_button2(interaction):
-    view.remove_item(button2)
-    view.remove_item(button3)
-    view.remove_item(button4)
-
-    view.add_item(button1)
-    await interaction.response.edit_message(view=view)
-    print(view.children)
-
-  button2.callback = add_button2
-  print(view.children)
-  button1.callback = add_button
-  view.add_item(button1)
-  await ctx.respond("Test", view=view)
-
-
+  
 @bot.command()
 async def v4(ctx):
   check_author = collection.find_one({"_id": str(ctx.author.id)})
   if check_author:
 
-    AuthorMG = collection.find_one({"_id": str(ctx.author.id)})
+    AuthorMG = check_author
     embed = discord.Embed(
         title='',
         description=
@@ -250,29 +313,24 @@ async def v2(ctx):
 @bot.command(
     description=
     """Вызов на дуэль. В пункте player:@jarjar пинганите человека чере @""")
-async def v1(ctx, player: str):
-  # Ниже избовляемся от ковычек и собачки в сообщение
-  liist = ['<', '>', '@']
-  for i in liist:
-    player = player.replace(i, '')
-
+async def v1(ctx, member: discord.Member):
   db = client.get_database('Rating_data_base')
   collection = db['Collection_data']
-
+  
   check_author = collection.find_one({"_id": str(ctx.author.id)})
-  user_document = collection.find_one({"_id": player})
+  user_document = collection.find_one({"_id": member.id})
 
   if check_author:
-    if player == '1150018596307734579':
+    if member.id == 1150018596307734579:
       await ctx.respond('Я не думаю что ты способен победить меня xd')
     # Запускаем класс с кнопками если все прекрастно
-    elif ctx.author.id == int(player):
+    elif ctx.author.id == member.id:
       await ctx.respond('Вы не можете вызвать самого себя')
     else:
       if user_document:
-        view = button1v1View(ctx, player, db)
+        view = button1v1View(ctx, member.id, db)
         await ctx.respond(
-            f'Вызов на столкновение игрока <@{player}> (`{user_document["Rating_1v1"]}`)',
+            f'Вызов на столкновение игрока <@{member.id}> (`{user_document["Rating_1v1"]}`)',
             view=view)
 
       else:
