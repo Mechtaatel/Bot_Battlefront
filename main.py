@@ -6,10 +6,11 @@ import discord
 from discord.ext import commands
 from discord.ui import Button, View, Select
 
+from Rating_commands.rating_check import Rating_Role
 from Rating_commands.v1 import button1v1View
 from Rating_commands.v2 import button2v2View
 from Rating_commands.v4 import button4v4View
-from Rating_commands.Rating_Role import Rating_Role_View
+
 from twitch import twitch
 #from Rating_commands.reg import check_name_and_reg
 
@@ -25,7 +26,7 @@ intents.presences = False
 bot = discord.Bot(intents=intents)
 
 # guild
-main_guild = 1071600435607113819
+main_guild = 1142846260454375434
 #channel
 c_rating = 1205086646517633044
 
@@ -277,7 +278,7 @@ async def v4(ctx):
                     value="`___`\n`___`\n`___`\n`___`",
                     inline=True)
     embed.set_footer(text="")
-    view = button4v4View(ctx, collection, AuthorMG)
+    view = button4v4View(ctx, collection, AuthorMG, guild)
     await ctx.respond('<@&1167993718704447519>.', embed=embed, view=view)
   else:
     await ctx.respond(
@@ -302,7 +303,7 @@ async def v2(ctx):
                     inline=True)
     embed.add_field(name="`0`", value="`___`\n`___`", inline=True)
     embed.set_footer(text="")
-    view = button2v2View(ctx, collection, AuthorMG)
+    view = button2v2View(ctx, collection, AuthorMG, guild)
     await ctx.respond('<@&1167993718704447519>.', embed=embed, view=view)
   else:
     await ctx.respond(
@@ -318,7 +319,7 @@ async def v1(ctx, member: discord.Member):
   collection = db['Collection_data']
   
   check_author = collection.find_one({"_id": str(ctx.author.id)})
-  user_document = collection.find_one({"_id": member.id})
+  user_document = collection.find_one({"_id": str(member.id)})
 
   if check_author:
     if member.id == 1150018596307734579:
@@ -328,7 +329,8 @@ async def v1(ctx, member: discord.Member):
       await ctx.respond('Вы не можете вызвать самого себя')
     else:
       if user_document:
-        view = button1v1View(ctx, member.id, db)
+        guild = bot.get_guild(main_guild)
+        view = button1v1View(ctx, member.id, db,guild)
         await ctx.respond(
             f'Вызов на столкновение игрока <@{member.id}> (`{user_document["Rating_1v1"]}`)',
             view=view)
@@ -341,22 +343,8 @@ async def v1(ctx, member: discord.Member):
     )
 
 
-@bot.command()
-@commands.has_permissions(administrator=True)
-async def level_join(ctx):
-
-  embed = discord.Embed(title='Создание рейтинговых ролей.',
-                        description='description opcioanl',
-                        color=0x00ff00)
-  embed.add_field(name="Поле 1", value="Значение поля 1", inline=False)
-  embed.add_field(name="Поле 2", value="Значение поля 2", inline=True)
-  embed.add_field(name="Поле 3", value="Значение поля 3", inline=True)
-  embed.set_footer(text="Текст в футере")
-  # embed.set_image(url="URL_изображения")
-  # embed.set_thumbnail(url="URL_миниатюры")
-  # embed.set_author(name="Автор", url="URL_автора", icon_url="URL_иконки_автора")
-  view = Rating_Role_View(ctx)
-  await ctx.send(embed=embed, view=view)
+# @bot.command()
+# @commands.has_permissions(administrator=True)
 
 
 bot.run(os.environ['token'])

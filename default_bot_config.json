@@ -1,21 +1,12 @@
 {
-    "version": "1.2",
-    "twitch_client_id": "o9iwiaee9yqd76wzmlpoh8y8x4rrih",
-    "twitch_client_secret": "C8p6Fxj3rthJDm+IkxQLYh27P6lPUhJiFIp/s4kvxZs=",
-    "discord_bot_api_token": token,
-    "discord_server_id": 0,
-    "discord_channel_name": "",
-    "streamers_to_monitor": [],
-    "host_streamer": "",
-    "silent_when_host_streaming": false,
-    "poll_period_seconds": 600,
-    "stream_start_messages": [
-        "{streamer_name} just started streaming! Check them out here: {stream_url}"
-    ],
-    "startup_message": null,
-    "discord_admin_users": [],
-    "discord_joke_tellers": [],
-    "config_write_delay_seconds": 15,
-    "command_log_file": null,
-    "jokes": []
+  "twitch": {
+    "client_id": "o9iwiaee9yqd76wzmlpoh8y8x4rrih",
+    "client_secret": "kpebh7ghfx2ryfzkv0dfmgqzkbdgvr",
+    "access_token": "C8p6Fxj3rthJDm+IkxQLYh27P6lPUhJiFIp/s4kvxZs=",
+          "channel_id": "1142846261402284052",
+          "expire_date": 1669483138,
+    "watchlist": [
+      "GrandeVolpe"
+    ]
+  }
 }

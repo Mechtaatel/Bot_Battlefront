@@ -3,13 +3,12 @@ from discord.ui import Button, View
 import pymongo
 import json
 import math
-
-
+from Rating_commands.rating_check import Rating_Role
 
 class RepeatOrCloseV1(discord.ui.View):
-  def __init__(self,ctx,player,db):
+  def __init__(self,ctx,player,db, guild):
     super().__init__(timeout=600)
-    
+    self.guild = guild
     self.ctx = ctx
     self.player = player
     self.repeat_press1 = False
@@ -28,9 +27,9 @@ class RepeatOrCloseV1(discord.ui.View):
       if self.repeat_press2:
         self.remove_item(self.close)
         button.disabled = True
-        view1 = ratingV1Button(self.ctx, self.player, self.db)
+        view1 = ratingV1Button(self.ctx, self.player, self.db, self.guild)
         await interaction.response.edit_message(
-          content=f"""<@{self.ctx.author.id}> Игрок <@{self.player}> принял вызов!""",
+          content=f"""<@{self.ctx.author.id}> VS <@{self.player}>""",
           view=view1  
         )
         
@@ -40,9 +39,9 @@ class RepeatOrCloseV1(discord.ui.View):
       if self.repeat_press1:
         self.remove_item(self.close)
         button.disabled = True
-        view1 = ratingV1Button(self.ctx, self.player,self.db)
+        view1 = ratingV1Button(self.ctx, self.player,self.db, self.guild)
         await interaction.response.edit_message(
-          content=f"""<@{self.ctx.author.id}> Игрок <@{self.player}> принял вызов!""",
+          content=f"""<@{self.ctx.author.id}> VS <@{self.player}>""",
           view=view1
         )
 
@@ -65,7 +64,7 @@ class RepeatOrCloseV1(discord.ui.View):
   
 
 class ratingV1Button(discord.ui.View):
-  def __init__(self,ctx,player,db):
+  def __init__(self,ctx,player,db, guild):
     super().__init__(timeout=600)
     self.ctx = ctx
     self.player = player
@@ -77,6 +76,7 @@ class ratingV1Button(discord.ui.View):
     self.j = 0
     self.event = [self.ctx.author.id, self.player]
     self.db = db
+    self.guild = guild
 
   @discord.ui.button(label='Win', style=discord.ButtonStyle.green)
   async def win(self, button, interaction):
@@ -173,13 +173,15 @@ class ratingV1Button(discord.ui.View):
     # Lose['Rating_1v1'] = R_b
     # with open('Rating_commands/rating_ds.json','w') as f:
     #     json.dump(Rating_ds, f)
-
+    Dictionaries_Team = {'op1':{'id': int(self.winU)}, 'op': {'id': int(self.loseU)}}
     try:
       # Try to edit the original message if response already sent
-      view2 = RepeatOrCloseV1(self.ctx, self.player, self.db)
+      
+      Rating_Role(self.ctx, collection, Dictionaries_Team,self.guild)
+      view2 = RepeatOrCloseV1(self.ctx, self.player, self.db, self.guild)
       await interaction.edit_original_response(content=
                                               f"""
-                                                Победитель: <@{self.winU}> (`{R_a}`) | Пороигравший: <@{self.loseU}> (`{R_b}`)""",
+Победитель: <@{self.winU}> (`{R_a}`) | Пороигравший: <@{self.loseU}> (`{R_b}`)""",
                                                 view=view2
                                                 )
     except discord.errors.InteractionResponded:
@@ -234,9 +236,9 @@ class ratingV1Button(discord.ui.View):
 
 class button1v1View(View):
 
-  def __init__(self, ctx, player,db, *args, **kwargs):
+  def __init__(self, ctx, player,db, guild):
     # Передайте игрока в качестве аргумента конструктору
-    super().__init__(*args, **kwargs, timeout=600)
+    super().__init__(timeout=600)
     # *aeds **kwargs:
     #  *args и **kwargs являются соглашениями в Python для работы с переменным
     #  количеством аргументов в функциях:
@@ -246,7 +248,7 @@ class button1v1View(View):
     #   кортежа (tuple).
     #
     # **kwargs - используется для передачи неопределенного количества именованных
-    #   аргументов функции. Это позволяет функции принимать аргументы в виде
+    #   аргументов функции. Это позволяет функции принимать аргументы в вxиде
     #   словаря (dictionary), где ключи являются именами аргументов, а
     #   значения — соответствующими данными.
     #
@@ -257,22 +259,20 @@ class button1v1View(View):
 
     self.ctx = ctx
     self.player = str(player) # Сохраняем игрока в переменную self.player вместо player
+    
     self.db = db
+    self.guild = guild
 
-  @discord.ui.button(label='Go',
-                     style=discord.ButtonStyle.green,
-                     custom_id='Soglas')
+  @discord.ui.button(label='Go',style=discord.ButtonStyle.green)
   async def go(self, button, interaction):
     if interaction.user.id == int(self.player):
-
-
       # Удаляем кнопку Нет
       self.remove_item(self.no)
       # Отключаем кнопку Go
       button.disabled = True
 
        # Добавляем кнопки
-      view1 = ratingV1Button(self.ctx, self.player, self.db)
+      view1 = ratingV1Button(self.ctx, self.player, self.db, self.guild)
       await interaction.response.edit_message(
         content=f"""<@{self.ctx.author.id}> Игрок <@{self.player}> принял вызов!""",
         view=view1
@@ -284,18 +284,12 @@ class button1v1View(View):
       await interaction.response.send_message(
           'Ты не можешь отвечать на этот вызов', ephemeral=True)
 
-  @discord.ui.button(label='No',
-                     style=discord.ButtonStyle.danger,
-                     custom_id='otkaz')
+  @discord.ui.button(label='No',style=discord.ButtonStyle.danger)
   async def no(self, button, interaction):
     if interaction.user.id == int(self.player):
       # Отключаем все кнопки если игрок отказывается.
-      button1 = [x for x in self.children if x.custom_id == 'Soglas'][0]
-      button1.disabled = True
-      button.disabled = True
-
       await interaction.response.edit_message(
-      content=f'Игрок <@{self.player}> отказался', view=self)
+      content=f'Игрок <@{self.player}> отказался', view=None)
     else:
       await interaction.response.send_message(
           'Ты не можешь отвечать на этот вызов', ephemeral=True)

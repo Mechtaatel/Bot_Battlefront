@@ -2,17 +2,17 @@ import math
 
 import discord
 from discord.ui import View
-
+from Rating_commands.rating_check import Rating_Role
 
 class button2v2View(View):
 
-  def __init__(self, ctx, collection, Author, *args, **kwargs):
+  def __init__(self, ctx, collection, Author, guild, *args, **kwargs):
     # Передайте игрока в качестве аргумента конструктору
     super().__init__(*args, **kwargs, timeout=6000)
 
     self.set = 4
 
-
+    self.guild = guild
     self.ctx = ctx
     self.collection = collection
     self.Author = Author
@@ -32,7 +32,7 @@ class button2v2View(View):
     self.gen_team2 = 0
 
     self.DontAgain = 'Вы уже состоите в команде'
-    self.PlzReg = "Вы не зарегестрированы.\nДля регестрации воспользуйтесь коммандой /reg"
+    self.PlzReg="Вы не зарегестрированы.\nДля регестрации воспользуйтесь коммандой /reg"
 
     self.Dictionaries_Team = {
         'au': {
@@ -153,7 +153,7 @@ class button2v2View(View):
       self.remove_item(self.remove)
       self.add_item(self.repeat)
       self.add_item(self.close)
-
+      Rating_Role(self.ctx, self.collection, self.Dictionaries_Team, self.guild)
       await interaction.response.edit_message(embed=self.C_E, view=self)
 
 
