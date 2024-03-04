@@ -5,6 +5,8 @@ import json
 import discord
 from discord.ext import commands
 from discord.ui import Button, View, Select
+from discord.utils import get
+
 
 from Rating_commands.rating_check import Rating_Role
 from Rating_commands.v1 import button1v1View
@@ -26,10 +28,21 @@ intents.presences = False
 bot = discord.Bot(intents=intents)
 
 # guild
-main_guild = 1142846260454375434
-#channel
-c_rating = 1205086646517633044
+settings = 'Main'
 
+if settings == 'Main':
+    
+  guild_id = 1071600435607113819
+  token = os.environ['token_main']
+  
+  # Role
+  rating_0 = 1165749431455461437
+#channel
+elif settings == 'Test':
+  guild_id = 1142846260454375434
+  token = os.environ['token']
+  # Role
+  rating_0 = 1142846260504707143
 
 #role
 # r_forse_s = 1142846260521472054
@@ -87,9 +100,11 @@ async def twith():
 
 @bot.event
 async def on_member_join(member):
+  
   guild = member.guild  # Получить сервер, к которому присоединился участник
-  if guild.id == 1071600435607113819:
-    role = guild.get_role(1142846260521472054)
+  print(guild, guild.id)
+  if guild.id == guild_id:
+    role = guild.get_role(rating_0)
     await member.add_roles(role)
   # Добавляем роль только что присоединившемуся участнику
   else:
@@ -133,6 +148,7 @@ def levelR(r, l):
 
 
 async def check_level(ctx, Roles, role, member, guild, level):
+  print(role.id, Roles['O'])
   if role.id in Roles['VIP']:
     return 'V'
   elif role in Roles['L']:
@@ -147,15 +163,16 @@ async def check_level(ctx, Roles, role, member, guild, level):
       return 'D'
   elif role.id in Roles['M']:
     return 'M'
-  elif role.id in Roles['O']:
-    member.remove_roles(role)
-    member.add_roles(guild.get_role(Roles['L'][1]))
-    return 'O'
+  elif role.id == Roles['O']:
+    
+    await member.remove_roles(role)
+    await member.add_roles(guild.get_role(Roles['L'][0]))
+    await ctx.respond("Ваша роль обнавлена")
   
 
 @bot.command()
 async def switch(ctx, role: discord.Role):
-  guild = bot.get_guild(main_guild)
+  guild = bot.get_guild(guild_id)
   check_author = collection.find_one({"_id": str(ctx.author.id)})
   if check_author:
     
@@ -167,52 +184,44 @@ async def switch(ctx, role: discord.Role):
     member = ctx.user
 
     roles = member.roles
-    role1 = roles[1]
-    for i in Roles:
-      if role.id and role1.id in Roles[i]:
+    role1 = roles[len(roles)-1]
+    for i in Roles.keys():
+      print(i)
+      
+      if role.id in Roles[i] and role1.id in Roles[i]:
         await ctx.send('Вам не требуется смена роли')
         return
       elif role.id in Roles[i] and role1.id not in Roles[i]:
         if i == 'VIP':
-          await ctx.send('Это VIP роль, вам она не доступна',ephemral=True)
+          await ctx.send('Это VIP роль, вам она не доступна')
           return
         elif i == 'L':
-          await ctx.send("Роль Джедаев выдается только Магистрами Ордена Джедаев",
-                         ephemral=True)
+          await ctx.send("Роль Джедаев выдается только Магистрами Ордена Джедаев")
           return
         elif i == 'D':
-          member.remove_roles(role1)
-          member.add_roles(guild.get_role(Roles[i][level]))
-          await ctx.respond("Ваша роль обнавлена",ephemral=True)
+          await member.remove_roles(role1)
+          await member.add_roles(guild.get_role(Roles[i][level]))
+          await ctx.respond("Ваша роль обнавлена")
           return
         elif i == 'M':
-          member.remove_roles(role1)
-          member.add_roles(guild.get_role(Roles[i][0]))
-          await ctx.respond("Ваша роль обнавлена",ephemral=True)
+          await member.remove_roles(role1)
+          await member.add_roles(guild.get_role(Roles[i][0]))
+          await ctx.respond("Ваша роль обнавлена")
           return
-      else:
-        await ctx.respond('Роль не определена',ephemral=True)
-        return
-    side = await check_level(ctx, Roles, role1, member, guild, level)
-    if side == 'V' or side == 'M':
-      await ctx.respond('Вы не нуждаетесь в обновлении роли', ephemeral=True)
-    elif side == "L-0" or side == "D-0":
-      await ctx.respond('Ваша роль соответствует вашему уровню', ephemeral=True)
-    elif side == "L" or side == "D":
-      member.remove_roles(role)
-      member.add_roles(guild.get_role(Roles[side][level]))
-      await ctx.respond('Ваша роль обновлена', ephemeral=True)
+        elif i == 'O':
+          await ctx.send('Error')
+      
+    
 
   else:
     await ctx.respond(
-      'Вы не зарегестрированы, воспользуйтесь командой /reg',
-      ephemeral=True)
+      'Вы не зарегестрированы, воспользуйтесь командой /reg')
 
 
 
 @bot.command()
 async def roleup(ctx):
-  guild = bot.get_guild(main_guild)
+  guild = bot.get_guild(guild_id)
   
   check_author = collection.find_one({"_id": str(ctx.author.id)})
 
@@ -225,21 +234,24 @@ async def roleup(ctx):
     member = ctx.user
 
     roles = member.roles
-    role = roles[1]
+    role = roles[len(roles)-1]
     side = await check_level(ctx, Roles, role, member, guild, level)
     if side == 'V' or side == 'M':
-      await ctx.respond('Вы не нуждаетесь в обновлении роли', ephemeral=True)
+      await ctx.respond('Вы не нуждаетесь в обновлении роли')
     elif side == "L-0" or side == "D-0":
-      await ctx.respond('Ваша роль соответствует вашему уровню', ephemeral=True)
+      await ctx.respond('Ваша роль соответствует вашему уровню')
     elif side == "L" or side == "D":
       member.remove_roles(role)
       member.add_roles(guild.get_role(Roles[side][level]))
-      await ctx.respond('Ваша роль обновлена', ephemeral=True)
+      await ctx.respond('Ваша роль обновлена')
     
   else:
     await ctx.respond(
       'Вы не зарегестрированы, воспользуйтесь командой /reg',
       ephemeral=True)
+
+
+
 
 
 @bot.command(description="""Регистрация. В пункте Name: введите свой ник.
@@ -329,6 +341,9 @@ async def v4(ctx):
     )
 
 
+
+
+
 @bot.command()
 async def v2(ctx):
   check_author = collection.find_one({"_id": str(ctx.author.id)})
@@ -354,6 +369,10 @@ async def v2(ctx):
     )
 
 
+
+
+
+
 @bot.command(
     description=
     """Вызов на дуэль. В пункте player:@jarjar пинганите человека чере @""")
@@ -372,7 +391,7 @@ async def v1(ctx, member: discord.Member):
       await ctx.respond('Вы не можете вызвать самого себя')
     else:
       if user_document:
-        guild = bot.get_guild(main_guild)
+        guild = bot.get_guild(guild_id)
         view = button1v1View(ctx, member.id, db,guild)
         await ctx.respond(
             f'Вызов на столкновение игрока <@{member.id}> (`{user_document["Rating_1v1"]}`)',
@@ -386,8 +405,11 @@ async def v1(ctx, member: discord.Member):
     )
 
 
+
+
+  
 # @bot.command()
 # @commands.has_permissions(administrator=True)
 
 
-bot.run(os.environ['token'])
+bot.run(token)
