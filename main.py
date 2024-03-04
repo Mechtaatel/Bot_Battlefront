@@ -88,7 +88,7 @@ async def twith():
 @bot.event
 async def on_member_join(member):
   guild = member.guild  # Получить сервер, к которому присоединился участник
-  if guild == 1071600435607113819:
+  if guild.id == 1071600435607113819:
     role = guild.get_role(1142846260521472054)
     await member.add_roles(role)
   # Добавляем роль только что присоединившемуся участнику
@@ -110,18 +110,8 @@ async def test(ctx,member: discord.Member):
   print(member.id)
 
 
-@bot.command()
-async def switch(ctx, arg: str):
-  if arg == 'Dark side' or 'dark side' or 'Dark_side' or 'dark_side' or 'darkside':
-    side = 'D'
-    await ctx.send_message('no')
 
-
-
-
-
-
-
+  
 
 def sll(check_author):
   sl=[check_author['Rating_1v1'],check_author['Rating_2v2'],check_author['Rating_4v4']]
@@ -139,7 +129,7 @@ def levelR(r, l):
     l += 1
     return levelR(r, l)
   else:
-    return 
+    return l
 
 
 async def check_level(ctx, Roles, role, member, guild, level):
@@ -149,35 +139,86 @@ async def check_level(ctx, Roles, role, member, guild, level):
     if level == Roles['L'].index(role.id):
       return 'L-0'
     else:
-      member.remove_roles(role)
-      member.add_roles(guild.get_role(Roles['L'][level]))
-      return 'L-1'
+      return 'L'
   elif role.id in Roles['D']:
     if level == Roles['D'].index(role.id):
       return 'D-0'
     else:
-      member.remove_roles(role)
-      member.add_roles(guild.get_role(Roles['D'][level]))
-      return 'D-1'
+      return 'D'
   elif role.id in Roles['M']:
     return 'M'
+  elif role.id in Roles['O']:
+    member.remove_roles(role)
+    member.add_roles(guild.get_role(Roles['L'][1]))
+    return 'O'
   
+
+@bot.command()
+async def switch(ctx, role: discord.Role):
+  guild = bot.get_guild(main_guild)
+  check_author = collection.find_one({"_id": str(ctx.author.id)})
+  if check_author:
     
+    sl = sll(check_author)
+    level = levelR(sl[0], 0)
 
+    Roles = json.load(open('Role.json'))
 
-  
+    member = ctx.user
+
+    roles = member.roles
+    role1 = roles[1]
+    for i in Roles:
+      if role.id and role1.id in Roles[i]:
+        await ctx.send('Вам не требуется смена роли')
+        return
+      elif role.id in Roles[i] and role1.id not in Roles[i]:
+        if i == 'VIP':
+          await ctx.send('Это VIP роль, вам она не доступна',ephemral=True)
+          return
+        elif i == 'L':
+          await ctx.send("Роль Джедаев выдается только Магистрами Ордена Джедаев",
+                         ephemral=True)
+          return
+        elif i == 'D':
+          member.remove_roles(role1)
+          member.add_roles(guild.get_role(Roles[i][level]))
+          await ctx.respond("Ваша роль обнавлена",ephemral=True)
+          return
+        elif i == 'M':
+          member.remove_roles(role1)
+          member.add_roles(guild.get_role(Roles[i][0]))
+          await ctx.respond("Ваша роль обнавлена",ephemral=True)
+          return
+      else:
+        await ctx.respond('Роль не определена',ephemral=True)
+        return
+    side = await check_level(ctx, Roles, role1, member, guild, level)
+    if side == 'V' or side == 'M':
+      await ctx.respond('Вы не нуждаетесь в обновлении роли', ephemeral=True)
+    elif side == "L-0" or side == "D-0":
+      await ctx.respond('Ваша роль соответствует вашему уровню', ephemeral=True)
+    elif side == "L" or side == "D":
+      member.remove_roles(role)
+      member.add_roles(guild.get_role(Roles[side][level]))
+      await ctx.respond('Ваша роль обновлена', ephemeral=True)
+
+  else:
+    await ctx.respond(
+      'Вы не зарегестрированы, воспользуйтесь командой /reg',
+      ephemeral=True)
+
 
 
 @bot.command()
 async def roleup(ctx):
-  level = 0
   guild = bot.get_guild(main_guild)
   
   check_author = collection.find_one({"_id": str(ctx.author.id)})
 
   if check_author:
     sl = sll(check_author)
-    level = levelR(sl[1], 1)
+    level = levelR(sl[0], 0)
 
     Roles = json.load(open('Role.json'))
 
@@ -190,7 +231,9 @@ async def roleup(ctx):
       await ctx.respond('Вы не нуждаетесь в обновлении роли', ephemeral=True)
     elif side == "L-0" or side == "D-0":
       await ctx.respond('Ваша роль соответствует вашему уровню', ephemeral=True)
-    elif side == "L-1" or side == "D-1":
+    elif side == "L" or side == "D":
+      member.remove_roles(role)
+      member.add_roles(guild.get_role(Roles[side][level]))
       await ctx.respond('Ваша роль обновлена', ephemeral=True)
     
   else:
