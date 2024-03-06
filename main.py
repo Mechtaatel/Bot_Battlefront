@@ -27,6 +27,8 @@ intents.presences = False
 
 bot = discord.Bot(intents=intents)
 
+guild = bot.get_guild(guild_id)
+
 # guild
 settings = 'Main'
 
@@ -185,7 +187,7 @@ async def check_level(ctx, Roles, role, member, guild, level):
 
 @bot.command()
 async def switch(ctx, role: str):
-  guild = bot.get_guild(guild_id)
+  
   check_author = collection.find_one({"_id": str(ctx.author.id)})
   if check_author:
     
@@ -234,7 +236,6 @@ async def switch(ctx, role: str):
 
 @bot.command()
 async def roleup(ctx):
-  guild = bot.get_guild(guild_id)
   
   check_author = collection.find_one({"_id": str(ctx.author.id)})
 
@@ -310,7 +311,6 @@ f"""Имя {name} уже занято пользователем.\nОбрати�
       )
       return ()
     else:
-      guild = bot.get_guild(guild_id)
       with open('Role.json') as json_file:
         Roles = json.load('Role.json')
       await ctx.author.remove_roles(rating_0)
@@ -410,7 +410,6 @@ async def v1(ctx, member: discord.Member):
       await ctx.respond('Вы не можете вызвать самого себя')
     else:
       if user_document:
-        guild = bot.get_guild(guild_id)
         view = button1v1View(ctx, member.id, db,guild)
         await ctx.respond(
             f'Вызов на столкновение игрока <@{member.id}> (`{user_document["Rating_1v1"]}`)',
