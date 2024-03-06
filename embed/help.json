@@ -1,0 +1,28 @@
+{
+  "content": "",
+  "tts": false,
+  "embeds": [
+    {
+      "id": 175421440,
+      "title": "Команды Бота",
+      "description": "Бот предназначен для введения некого рейтинга в нашу игру. Так же от рейтинга зависит ваш ранг на сервере. Надеюсь вы по достоинству оцените данную задумку.",
+      "color": 1845585,
+      "image": {
+        "url": "https://images.wallpapersden.com/image/download/swords-background-line_ZmVramWUmZqaraWkpJRsa21lrWloZ2U.jpg"
+      },
+      "thumbnail": {
+        "url": "https://cdn.discordapp.com/avatars/115001859630?size=1024"
+      },
+      "fields": [
+        {
+          "id": 880755393,
+          "name": "Команды",
+          "value": "**/reg** Регистрация. В пункте name укажите EA ник, в пункте hourse то сколько у вас часов в bf.\n**/v1** Вызов на дуэль.\n**/v2** Сбор на игру в режиме 2 на 2 (Разрешены стрелки)\n**/v4** Сбор на игру в режиме 4 на 4\n**/switch** Перейти на темную \"Dark\" сторону или вступить к Мандалорцам \"Mando\"\n\n",
+          "inline": true
+        }
+      ]
+    }
+  ],
+  "components": [],
+  "actions": {}
+}

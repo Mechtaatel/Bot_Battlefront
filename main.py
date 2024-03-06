@@ -33,14 +33,14 @@ settings = 'Main'
 if settings == 'Main':
     
   guild_id = 1071600435607113819
-  token = os.environ['token_main']
+  token = os.environ['token']
   
   # Role
   rating_0 = 1165749431455461437
 #channel
 elif settings == 'Test':
   guild_id = 1142846260454375434
-  token = os.environ['token']
+  token = os.environ['token_test']
   # Role
   rating_0 = 1142846260504707143
 
@@ -102,7 +102,6 @@ async def twith():
 async def on_member_join(member):
   
   guild = member.guild  # Получить сервер, к которому присоединился участник
-  print(guild, guild.id)
   if guild.id == guild_id:
     role = guild.get_role(rating_0)
     await member.add_roles(role)
@@ -116,17 +115,32 @@ async def on_member_join(member):
   #await channel.send(f'Welcome to the server, {member.mention}!')
   # Отправьте приветственное сообщение на указанный канал
 
-@bot.command()
-async def test(ctx,member: discord.Member):
-  roles = member.roles
-  await ctx.send(member)
-  print(roles)
-  print(member)
-  print(member.id)
 
 
+# Для нашего удобства давайте создадим функцию
+def parse_embed_json(json_file):
+    embeds_json = json.loads(json_file)['embeds']
 
-  
+    for embed_json in embeds_json:
+        embed = discord.Embed.from_dict(embed_json)
+        yield embed
+
+# И основной код выглядит так
+@bot.command(name='embed', description='Отправить embed сообщение')
+@commands.has_permissions(administrator=True)
+async def add_embend(ctx, name: str):
+  if name == 'help':
+    with open("embed/help.json", "r") as file:
+        temp_ban_embeds = parse_embed_json(file.read())
+    
+    for embed in temp_ban_embeds:
+        await ctx.send(embed=embed)
+
+
+@bot.command(name='name', description='Узнать nickname участника')
+async def name
+
+
 
 def sll(check_author):
   sl=[check_author['Rating_1v1'],check_author['Rating_2v2'],check_author['Rating_4v4']]
@@ -148,7 +162,6 @@ def levelR(r, l):
 
 
 async def check_level(ctx, Roles, role, member, guild, level):
-  print(role.id, Roles['O'])
   if role.id in Roles['VIP']:
     return 'V'
   elif role in Roles['L']:
@@ -171,7 +184,7 @@ async def check_level(ctx, Roles, role, member, guild, level):
   
 
 @bot.command()
-async def switch(ctx, role: discord.Role):
+async def switch(ctx, role: str):
   guild = bot.get_guild(guild_id)
   check_author = collection.find_one({"_id": str(ctx.author.id)})
   if check_author:
@@ -179,8 +192,15 @@ async def switch(ctx, role: discord.Role):
     sl = sll(check_author)
     level = levelR(sl[0], 0)
 
-    Roles = json.load(open('Role.json'))
-
+    with open('Role.json') as json_file:
+      Roles = json.load(json_file)
+    if role == 'Dark':
+      roleid = 1071606225189470339
+    elif role == 'Mando':
+      roleid = 1073721742406713426
+    else:
+      await ctx.send('Error')
+      return
     member = ctx.user
 
     roles = member.roles
@@ -188,17 +208,11 @@ async def switch(ctx, role: discord.Role):
     for i in Roles.keys():
       print(i)
       
-      if role.id in Roles[i] and role1.id in Roles[i]:
+      if roleid in Roles[i] and role1.id in Roles[i]:
         await ctx.send('Вам не требуется смена роли')
         return
       elif role.id in Roles[i] and role1.id not in Roles[i]:
-        if i == 'VIP':
-          await ctx.send('Это VIP роль, вам она не доступна')
-          return
-        elif i == 'L':
-          await ctx.send("Роль Джедаев выдается только Магистрами Ордена Джедаев")
-          return
-        elif i == 'D':
+        if i == 'D':
           await member.remove_roles(role1)
           await member.add_roles(guild.get_role(Roles[i][level]))
           await ctx.respond("Ваша роль обнавлена")
@@ -208,14 +222,13 @@ async def switch(ctx, role: discord.Role):
           await member.add_roles(guild.get_role(Roles[i][0]))
           await ctx.respond("Ваша роль обнавлена")
           return
-        elif i == 'O':
-          await ctx.send('Error')
-      
+       
     
 
   else:
     await ctx.respond(
       'Вы не зарегестрированы, воспользуйтесь командой /reg')
+
 
 
 
@@ -229,7 +242,8 @@ async def roleup(ctx):
     sl = sll(check_author)
     level = levelR(sl[0], 0)
 
-    Roles = json.load(open('Role.json'))
+    with open('Role.json') as json_file:
+      Roles = json.load('Role.json')
 
     member = ctx.user
 
@@ -241,8 +255,8 @@ async def roleup(ctx):
     elif side == "L-0" or side == "D-0":
       await ctx.respond('Ваша роль соответствует вашему уровню')
     elif side == "L" or side == "D":
-      member.remove_roles(role)
-      member.add_roles(guild.get_role(Roles[side][level]))
+      await member.remove_roles(role)
+      await member.add_roles(guild.get_role(Roles[side][level]))
       await ctx.respond('Ваша роль обновлена')
     
   else:
@@ -296,7 +310,12 @@ f"""Имя {name} уже занято пользователем.\nОбрати�
       )
       return ()
     else:
-
+      guild = bot.get_guild(guild_id)
+      with open('Role.json') as json_file:
+        Roles = json.load('Role.json')
+      await ctx.author.remove_roles(rating_0)
+      await ctx.author.add_roles(guild.get_role(Roles['L'][0]))
+      
       new_data = {
           'EA_Name': name,
           'Rating_1v1': rating,
