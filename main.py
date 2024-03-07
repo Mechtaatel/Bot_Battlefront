@@ -27,6 +27,12 @@ intents.presences = False
 
 bot = discord.Bot(intents=intents)
 
+<<<<<<< HEAD
+
+=======
+guild = bot.get_guild(guild_id)
+>>>>>>> 10145bbd2799a78bd758ad1fd9179c92f7e0b476
+
 # guild
 settings = 'Main'
 
@@ -138,7 +144,8 @@ async def add_embend(ctx, name: str):
 
 
 @bot.command(name='name', description='Узнать nickname участника')
-async def name
+async def name(ctx, member: discord.Member):
+  await ctx.send(member.name)
 
 
 
@@ -185,15 +192,15 @@ async def check_level(ctx, Roles, role, member, guild, level):
 
 @bot.command()
 async def switch(ctx, role: str):
-  guild = bot.get_guild(guild_id)
+  
   check_author = collection.find_one({"_id": str(ctx.author.id)})
   if check_author:
     
     sl = sll(check_author)
     level = levelR(sl[0], 0)
 
-    with open('Role.json') as json_file:
-      Roles = json.load(json_file)
+    with open('Role.json') as f:
+      Roles = json.load(f)
     if role == 'Dark':
       roleid = 1071606225189470339
     elif role == 'Mando':
@@ -211,8 +218,9 @@ async def switch(ctx, role: str):
       if roleid in Roles[i] and role1.id in Roles[i]:
         await ctx.send('Вам не требуется смена роли')
         return
-      elif role.id in Roles[i] and role1.id not in Roles[i]:
+      elif roleid in Roles[i] and role1.id not in Roles[i]:
         if i == 'D':
+          guild = bot.get_guild(guild_id)
           await member.remove_roles(role1)
           await member.add_roles(guild.get_role(Roles[i][level]))
           await ctx.respond("Ваша роль обнавлена")
@@ -234,7 +242,6 @@ async def switch(ctx, role: str):
 
 @bot.command()
 async def roleup(ctx):
-  guild = bot.get_guild(guild_id)
   
   check_author = collection.find_one({"_id": str(ctx.author.id)})
 
@@ -242,11 +249,11 @@ async def roleup(ctx):
     sl = sll(check_author)
     level = levelR(sl[0], 0)
 
-    with open('Role.json') as json_file:
-      Roles = json.load('Role.json')
+    with open('Role.json') as f:
+      Roles = json.load(f)
 
     member = ctx.user
-
+    guild = bot.get_guild(guild_id)
     roles = member.roles
     role = roles[len(roles)-1]
     side = await check_level(ctx, Roles, role, member, guild, level)
@@ -255,6 +262,7 @@ async def roleup(ctx):
     elif side == "L-0" or side == "D-0":
       await ctx.respond('Ваша роль соответствует вашему уровню')
     elif side == "L" or side == "D":
+
       await member.remove_roles(role)
       await member.add_roles(guild.get_role(Roles[side][level]))
       await ctx.respond('Ваша роль обновлена')
@@ -270,7 +278,7 @@ async def roleup(ctx):
 
 @bot.command(description="""Регистрация. В пункте Name: введите свой ник.
     В пункте hourse введите сколько у вас часов""")
-async def reg(ctx, name: str, hourse: int):
+async def reg(ctx,name: str, hourse: int):
   if hourse <= 50:
     rating = 200
   elif hourse <= 300:
@@ -310,11 +318,21 @@ f"""Имя {name} уже занято пользователем.\nОбрати�
       )
       return ()
     else:
+<<<<<<< HEAD
+      with open('Role.json') as f:
+        Roles = json.load(f)
       guild = bot.get_guild(guild_id)
+      member = ctx.user
+      roles = member.roles
+      role = roles[len(roles)-1]
+      await member.remove_roles(role)
+      await member.add_roles(guild.get_role(Roles['L'][0]))
+=======
       with open('Role.json') as json_file:
         Roles = json.load('Role.json')
       await ctx.author.remove_roles(rating_0)
       await ctx.author.add_roles(guild.get_role(Roles['L'][0]))
+>>>>>>> 10145bbd2799a78bd758ad1fd9179c92f7e0b476
       
       new_data = {
           'EA_Name': name,
@@ -337,7 +355,7 @@ f"""Имя {name} уже занято пользователем.\nОбрати�
 async def v4(ctx):
   check_author = collection.find_one({"_id": str(ctx.author.id)})
   if check_author:
-
+    guild = bot.get_guild(guild_id)
     AuthorMG = check_author
     embed = discord.Embed(
         title='',
@@ -367,7 +385,7 @@ async def v4(ctx):
 async def v2(ctx):
   check_author = collection.find_one({"_id": str(ctx.author.id)})
   if check_author:
-
+    guild = bot.get_guild(guild_id)
     AuthorMG = collection.find_one({"_id": str(ctx.author.id)})
     embed = discord.Embed(
         title='',
@@ -410,7 +428,6 @@ async def v1(ctx, member: discord.Member):
       await ctx.respond('Вы не можете вызвать самого себя')
     else:
       if user_document:
-        guild = bot.get_guild(guild_id)
         view = button1v1View(ctx, member.id, db,guild)
         await ctx.respond(
             f'Вызов на столкновение игрока <@{member.id}> (`{user_document["Rating_1v1"]}`)',
