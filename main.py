@@ -7,7 +7,6 @@ from discord.ext import commands
 from discord.ui import Button, View, Select
 from discord.utils import get
 
-
 from Rating_commands.rating_check import Rating_Role
 from Rating_commands.v1 import button1v1View
 from Rating_commands.v2 import button2v2View
@@ -27,20 +26,14 @@ intents.presences = False
 
 bot = discord.Bot(intents=intents)
 
-<<<<<<< HEAD
-
-=======
-guild = bot.get_guild(guild_id)
->>>>>>> 10145bbd2799a78bd758ad1fd9179c92f7e0b476
-
 # guild
 settings = 'Main'
 
 if settings == 'Main':
-    
+
   guild_id = 1071600435607113819
   token = os.environ['token']
-  
+
   # Role
   rating_0 = 1165749431455461437
 #channel
@@ -65,7 +58,6 @@ try:
   print("Пропинговал ваше развертывание. Вы успешно подключились к MongoDB!")
 except Exception as e:
   print(e)
-
 
 
 @bot.event
@@ -95,18 +87,14 @@ async def on_ready():
 # Для других типов ошибок вы можете добавить сюда дополнительную логику обработки.
 
 
-
-
 @bot.event
 async def twith():
   print(twitch)
 
 
-
-
 @bot.event
 async def on_member_join(member):
-  
+
   guild = member.guild  # Получить сервер, к которому присоединился участник
   if guild.id == guild_id:
     role = guild.get_role(rating_0)
@@ -122,14 +110,14 @@ async def on_member_join(member):
   # Отправьте приветственное сообщение на указанный канал
 
 
-
 # Для нашего удобства давайте создадим функцию
 def parse_embed_json(json_file):
-    embeds_json = json.loads(json_file)['embeds']
+  embeds_json = json.loads(json_file)['embeds']
 
-    for embed_json in embeds_json:
-        embed = discord.Embed.from_dict(embed_json)
-        yield embed
+  for embed_json in embeds_json:
+    embed = discord.Embed.from_dict(embed_json)
+    yield embed
+
 
 # И основной код выглядит так
 @bot.command(name='embed', description='Отправить embed сообщение')
@@ -137,27 +125,46 @@ def parse_embed_json(json_file):
 async def add_embend(ctx, name: str):
   if name == 'help':
     with open("embed/help.json", "r") as file:
-        temp_ban_embeds = parse_embed_json(file.read())
-    
-    for embed in temp_ban_embeds:
-        await ctx.send(embed=embed)
+      temp_ban_embeds = parse_embed_json(file.read())
 
+    for embed in temp_ban_embeds:
+      await ctx.send(embed=embed)
+
+
+
+@bot.command(name='rating', description='Узнать свой рейтинг')
+async def rating(ctx):
+  member = ctx.user
+  check_author = collection.find_one({"_id": str(member.id)})
+  if check_author:
+    await ctx.respond(
+      f"Режим 4 на 4:`{check_author['Rating_4v4']}`\nРежим 2 на 2:`{check_author['Rating_2v2']}`\nРежим 1 на 1:`{check_author['Rating_1v1']}`")
+  else:
+    await ctx.respond(f'Вы не зарегистрированы')
+
+
+  
 
 @bot.command(name='name', description='Узнать nickname участника')
 async def name(ctx, member: discord.Member):
-  await ctx.send(member.name)
-
-
+  check_author = collection.find_one({"_id": str(member.id)})
+  if check_author:
+    await ctx.respond(f"`{check_author['EA_Name']}`")
+  else:
+    await ctx.respond(f'Участник `{member.name}` не зарегистрирован')
 
 def sll(check_author):
-  sl=[check_author['Rating_1v1'],check_author['Rating_2v2'],check_author['Rating_4v4']]
-  
+  sl = [
+      check_author['Rating_1v1'], check_author['Rating_2v2'],
+      check_author['Rating_4v4']
+  ]
+
   for i in range(2):
-    for j in range(3-i-1):
-      if sl[j]<sl[j+1]:
-        sl[j], sl[j+1] = sl[j+1], sl[j]
+    for j in range(3 - i - 1):
+      if sl[j] < sl[j + 1]:
+        sl[j], sl[j + 1] = sl[j + 1], sl[j]
   return sl
-  
+
 
 def levelR(r, l):
   if r > 1200:
@@ -184,18 +191,18 @@ async def check_level(ctx, Roles, role, member, guild, level):
   elif role.id in Roles['M']:
     return 'M'
   elif role.id == Roles['O']:
-    
+
     await member.remove_roles(role)
     await member.add_roles(guild.get_role(Roles['L'][0]))
     await ctx.respond("Ваша роль обнавлена")
-  
+
 
 @bot.command()
 async def switch(ctx, role: str):
-  
+
   check_author = collection.find_one({"_id": str(ctx.author.id)})
   if check_author:
-    
+
     sl = sll(check_author)
     level = levelR(sl[0], 0)
 
@@ -211,10 +218,9 @@ async def switch(ctx, role: str):
     member = ctx.user
 
     roles = member.roles
-    role1 = roles[len(roles)-1]
+    role1 = roles[len(roles) - 1]
     for i in Roles.keys():
-      print(i)
-      
+
       if roleid in Roles[i] and role1.id in Roles[i]:
         await ctx.send('Вам не требуется смена роли')
         return
@@ -230,19 +236,14 @@ async def switch(ctx, role: str):
           await member.add_roles(guild.get_role(Roles[i][0]))
           await ctx.respond("Ваша роль обнавлена")
           return
-       
-    
 
   else:
-    await ctx.respond(
-      'Вы не зарегестрированы, воспользуйтесь командой /reg')
-
-
+    await ctx.respond('Вы не зарегестрированы, воспользуйтесь командой /reg')
 
 
 @bot.command()
 async def roleup(ctx):
-  
+
   check_author = collection.find_one({"_id": str(ctx.author.id)})
 
   if check_author:
@@ -255,7 +256,7 @@ async def roleup(ctx):
     member = ctx.user
     guild = bot.get_guild(guild_id)
     roles = member.roles
-    role = roles[len(roles)-1]
+    role = roles[len(roles) - 1]
     side = await check_level(ctx, Roles, role, member, guild, level)
     if side == 'V' or side == 'M':
       await ctx.respond('Вы не нуждаетесь в обновлении роли')
@@ -266,19 +267,15 @@ async def roleup(ctx):
       await member.remove_roles(role)
       await member.add_roles(guild.get_role(Roles[side][level]))
       await ctx.respond('Ваша роль обновлена')
-    
+
   else:
-    await ctx.respond(
-      'Вы не зарегестрированы, воспользуйтесь командой /reg',
-      ephemeral=True)
-
-
-
+    await ctx.respond('Вы не зарегестрированы, воспользуйтесь командой /reg',
+                      ephemeral=True)
 
 
 @bot.command(description="""Регистрация. В пункте Name: введите свой ник.
     В пункте hourse введите сколько у вас часов""")
-async def reg(ctx,name: str, hourse: int):
+async def reg(ctx, name: str, hourse: int):
   if hourse <= 50:
     rating = 200
   elif hourse <= 300:
@@ -314,26 +311,19 @@ async def reg(ctx,name: str, hourse: int):
     user_document1 = collection.find_one({"EA_Name": name})
     if user_document1:
       await ctx.respond(
-f"""Имя {name} уже занято пользователем.\nОбратитесь пожалуйста в Администрацию."""
+          f"""Имя {name} уже занято пользователем.\nОбратитесь пожалуйста в Администрацию."""
       )
       return ()
     else:
-<<<<<<< HEAD
       with open('Role.json') as f:
         Roles = json.load(f)
       guild = bot.get_guild(guild_id)
       member = ctx.user
       roles = member.roles
-      role = roles[len(roles)-1]
+      role = roles[len(roles) - 1]
       await member.remove_roles(role)
       await member.add_roles(guild.get_role(Roles['L'][0]))
-=======
-      with open('Role.json') as json_file:
-        Roles = json.load('Role.json')
-      await ctx.author.remove_roles(rating_0)
-      await ctx.author.add_roles(guild.get_role(Roles['L'][0]))
->>>>>>> 10145bbd2799a78bd758ad1fd9179c92f7e0b476
-      
+
       new_data = {
           'EA_Name': name,
           'Rating_1v1': rating,
@@ -347,10 +337,6 @@ f"""Имя {name} уже занято пользователем.\nОбрати�
       await ctx.respond("""Поздравляем вы зарегестрированы""")
 
 
-  
-    
-
-  
 @bot.command()
 async def v4(ctx):
   check_author = collection.find_one({"_id": str(ctx.author.id)})
@@ -378,9 +364,6 @@ async def v4(ctx):
     )
 
 
-
-
-
 @bot.command()
 async def v2(ctx):
   check_author = collection.find_one({"_id": str(ctx.author.id)})
@@ -406,17 +389,13 @@ async def v2(ctx):
     )
 
 
-
-
-
-
 @bot.command(
     description=
     """Вызов на дуэль. В пункте player:@jarjar пинганите человека чере @""")
 async def v1(ctx, member: discord.Member):
   db = client.get_database('Rating_data_base')
   collection = db['Collection_data']
-  
+
   check_author = collection.find_one({"_id": str(ctx.author.id)})
   user_document = collection.find_one({"_id": str(member.id)})
 
@@ -428,7 +407,8 @@ async def v1(ctx, member: discord.Member):
       await ctx.respond('Вы не можете вызвать самого себя')
     else:
       if user_document:
-        view = button1v1View(ctx, member.id, db,guild)
+        guild = bot.get_guild(guild_id)
+        view = button1v1View(ctx, member.id, db, guild)
         await ctx.respond(
             f'Вызов на столкновение игрока <@{member.id}> (`{user_document["Rating_1v1"]}`)',
             view=view)
@@ -441,11 +421,7 @@ async def v1(ctx, member: discord.Member):
     )
 
 
-
-
-  
 # @bot.command()
 # @commands.has_permissions(administrator=True)
-
 
 bot.run(token)
