@@ -12,7 +12,6 @@ from Rating_commands.v1 import button1v1View
 from Rating_commands.v2 import button2v2View
 from Rating_commands.v4 import button4v4View
 
-from twitch import twitch
 #from Rating_commands.reg import check_name_and_reg
 
 import pymongo
@@ -87,9 +86,6 @@ async def on_ready():
 # Для других типов ошибок вы можете добавить сюда дополнительную логику обработки.
 
 
-@bot.event
-async def twith():
-  print(twitch)
 
 
 @bot.event
