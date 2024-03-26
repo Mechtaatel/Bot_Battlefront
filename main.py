@@ -12,10 +12,7 @@ from Rating_commands.v1 import button1v1View
 from Rating_commands.v2 import button2v2View
 from Rating_commands.v4 import button4v4View
 
-<<<<<<< Updated upstream
-=======
 from Other_commands.switch import role_commands
->>>>>>> Stashed changes
 #from Rating_commands.reg import check_name_and_reg
 
 import pymongo
@@ -90,11 +87,7 @@ async def on_ready():
 # Для других типов ошибок вы можете добавить сюда дополнительную логику обработки.
 
 
-<<<<<<< Updated upstream
 
-
-=======
->>>>>>> Stashed changes
 @bot.event
 async def on_member_join(member):
 
@@ -223,7 +216,7 @@ async def reg(ctx, name: str, hourse: int):
       if role.id == 1197490336075890718:
         role = roles[len(roles) - 2]
       await member.remove_roles(role)
-      await member.add_roles(guild.get_role(1165749431455461437))
+      await member.add_roles(guild.get_role(1071604948476895263))
 
       new_data = {
           'EA_Name': name,
