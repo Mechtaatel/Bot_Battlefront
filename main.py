@@ -12,6 +12,10 @@ from Rating_commands.v1 import button1v1View
 from Rating_commands.v2 import button2v2View
 from Rating_commands.v4 import button4v4View
 
+<<<<<<< Updated upstream
+=======
+from Other_commands.switch import role_commands
+>>>>>>> Stashed changes
 #from Rating_commands.reg import check_name_and_reg
 
 import pymongo
@@ -86,8 +90,11 @@ async def on_ready():
 # Для других типов ошибок вы можете добавить сюда дополнительную логику обработки.
 
 
+<<<<<<< Updated upstream
 
 
+=======
+>>>>>>> Stashed changes
 @bot.event
 async def on_member_join(member):
 
@@ -127,70 +134,27 @@ async def add_embend(ctx, name: str):
       await ctx.send(embed=embed)
 
 
-
 @bot.command(name='rating', description='Узнать свой рейтинг')
 async def rating(ctx):
   member = ctx.user
   check_author = collection.find_one({"_id": str(member.id)})
   if check_author:
-    await ctx.respond(
-      f"Режим 4 на 4:`{check_author['Rating_4v4']}`\nРежим 2 на 2:`{check_author['Rating_2v2']}`\nРежим 1 на 1:`{check_author['Rating_1v1']}`")
+    await ctx.interaction.response.send_message(
+        f"""Режим 4 на 4:`{check_author['Rating_4v4']}`
+Режим 2 на 2:`{check_author['Rating_2v2']}`
+Режим 1 на 1:`{check_author['Rating_1v1']}`""")
   else:
-    await ctx.respond(f'Вы не зарегистрированы')
+    await ctx.interaction.response.send_message(f'Вы не зарегистрированы')
 
-
-  
 
 @bot.command(name='name', description='Узнать nickname участника')
 async def name(ctx, member: discord.Member):
   check_author = collection.find_one({"_id": str(member.id)})
   if check_author:
-    await ctx.respond(f"`{check_author['EA_Name']}`")
+    await ctx.interaction.response.send_message(f"`{check_author['EA_Name']}`")
   else:
-    await ctx.respond(f'Участник `{member.name}` не зарегистрирован')
-
-def sll(check_author):
-  sl = [
-      check_author['Rating_1v1'], check_author['Rating_2v2'],
-      check_author['Rating_4v4']
-  ]
-
-  for i in range(2):
-    for j in range(3 - i - 1):
-      if sl[j] < sl[j + 1]:
-        sl[j], sl[j + 1] = sl[j + 1], sl[j]
-  return sl
-
-
-def levelR(r, l):
-  if r > 1200:
-    r -= 400
-    l += 1
-    return levelR(r, l)
-  else:
-    return l
-
-
-async def check_level(ctx, Roles, role, member, guild, level):
-  if role.id in Roles['VIP']:
-    return 'V'
-  elif role in Roles['L']:
-    if level == Roles['L'].index(role.id):
-      return 'L-0'
-    else:
-      return 'L'
-  elif role.id in Roles['D']:
-    if level == Roles['D'].index(role.id):
-      return 'D-0'
-    else:
-      return 'D'
-  elif role.id in Roles['M']:
-    return 'M'
-  elif role.id == Roles['O']:
-
-    await member.remove_roles(role)
-    await member.add_roles(guild.get_role(Roles['L'][0]))
-    await ctx.respond("Ваша роль обнавлена")
+    await ctx.interaction.response.send_message(
+        f'Участник `{member.name}` не зарегистрирован')
 
 
 @bot.command()
@@ -198,75 +162,15 @@ async def switch(ctx, role: str):
 
   check_author = collection.find_one({"_id": str(ctx.author.id)})
   if check_author:
-
-    sl = sll(check_author)
-    level = levelR(sl[0], 0)
-
-    with open('Role.json') as f:
-      Roles = json.load(f)
-    if role == 'Dark':
-      roleid = 1071606225189470339
-    elif role == 'Mando':
-      roleid = 1073721742406713426
-    else:
-      await ctx.send('Error')
-      return
-    member = ctx.user
-
-    roles = member.roles
-    role1 = roles[len(roles) - 1]
-    for i in Roles.keys():
-
-      if roleid in Roles[i] and role1.id in Roles[i]:
-        await ctx.send('Вам не требуется смена роли')
-        return
-      elif roleid in Roles[i] and role1.id not in Roles[i]:
-        if i == 'D':
-          guild = bot.get_guild(guild_id)
-          await member.remove_roles(role1)
-          await member.add_roles(guild.get_role(Roles[i][level]))
-          await ctx.respond("Ваша роль обнавлена")
-          return
-        elif i == 'M':
-          await member.remove_roles(role1)
-          await member.add_roles(guild.get_role(Roles[i][0]))
-          await ctx.respond("Ваша роль обнавлена")
-          return
-
-  else:
-    await ctx.respond('Вы не зарегестрированы, воспользуйтесь командой /reg')
-
-
-@bot.command()
-async def roleup(ctx):
-
-  check_author = collection.find_one({"_id": str(ctx.author.id)})
-
-  if check_author:
-    sl = sll(check_author)
-    level = levelR(sl[0], 0)
-
-    with open('Role.json') as f:
-      Roles = json.load(f)
-
-    member = ctx.user
+    if role == 'Light':
+      await ctx.interaction.response.send_message('Вернуться уже не получится)'
+                                                  )
     guild = bot.get_guild(guild_id)
-    roles = member.roles
-    role = roles[len(roles) - 1]
-    side = await check_level(ctx, Roles, role, member, guild, level)
-    if side == 'V' or side == 'M':
-      await ctx.respond('Вы не нуждаетесь в обновлении роли')
-    elif side == "L-0" or side == "D-0":
-      await ctx.respond('Ваша роль соответствует вашему уровню')
-    elif side == "L" or side == "D":
-
-      await member.remove_roles(role)
-      await member.add_roles(guild.get_role(Roles[side][level]))
-      await ctx.respond('Ваша роль обновлена')
-
+    obj = role_commands(ctx, check_author, guild, role)
+    await obj.switch()
   else:
-    await ctx.respond('Вы не зарегестрированы, воспользуйтесь командой /reg',
-                      ephemeral=True)
+    await ctx.interaction.response.send_message(
+        'Вы не зарегестрированы, воспользуйтесь командой /reg')
 
 
 @bot.command(description="""Регистрация. В пункте Name: введите свой ник.
@@ -298,7 +202,8 @@ async def reg(ctx, name: str, hourse: int):
   if user_document:
     # Получить доступ к `EA_Name` непосредственно из `user_document`
     EAName = user_document['EA_Name']
-    await ctx.respond(f'Вы уже зарегестрированы под никнемом {EAName}.')
+    await ctx.interaction.response.send_message(
+        f'Вы уже зарегестрированы под никнемом {EAName}.')
 
   else:
 
@@ -306,19 +211,19 @@ async def reg(ctx, name: str, hourse: int):
     # Проверяем найден ли name пользователя в базе данных
     user_document1 = collection.find_one({"EA_Name": name})
     if user_document1:
-      await ctx.respond(
-          f"""Имя {name} уже занято пользователем.\nОбратитесь пожалуйста в Администрацию."""
-      )
+      await ctx.interaction.response.send_message(
+          f"""Имя {name} уже занято пользователем.
+Обратитесь пожалуйста в Администрацию.""")
       return ()
     else:
-      with open('Role.json') as f:
-        Roles = json.load(f)
       guild = bot.get_guild(guild_id)
       member = ctx.user
       roles = member.roles
       role = roles[len(roles) - 1]
+      if role.id == 1197490336075890718:
+        role = roles[len(roles) - 2]
       await member.remove_roles(role)
-      await member.add_roles(guild.get_role(Roles['L'][0]))
+      await member.add_roles(guild.get_role(1165749431455461437))
 
       new_data = {
           'EA_Name': name,
@@ -330,10 +235,11 @@ async def reg(ctx, name: str, hourse: int):
 
       collection.update_one({'_id': user_id}, {"$set": new_data}, upsert=True)
 
-      await ctx.respond("""Поздравляем вы зарегестрированы""")
+      await ctx.interaction.response.send_message(
+          """Поздравляем вы зарегестрированы""")
 
 
-@bot.command()
+@bot.command(description='Вызвать в игру 4 на 4')
 async def v4(ctx):
   check_author = collection.find_one({"_id": str(ctx.author.id)})
   if check_author:
@@ -353,14 +259,16 @@ async def v4(ctx):
                     inline=True)
     embed.set_footer(text="")
     view = button4v4View(ctx, collection, AuthorMG, guild)
-    await ctx.respond('<@&1167993718704447519>.', embed=embed, view=view)
+    await ctx.interaction.response.send_message('<@&1167993718704447519>.',
+                                                embed=embed,
+                                                view=view)
   else:
-    await ctx.respond(
+    await ctx.interaction.response.send_message(
         """Вы не зарегестрированы.\nДля регестрации воспользуйтесь коммандой /reg"""
     )
 
 
-@bot.command()
+@bot.command(description='Вызвать в игру 2 на 2')
 async def v2(ctx):
   check_author = collection.find_one({"_id": str(ctx.author.id)})
   if check_author:
@@ -378,16 +286,16 @@ async def v2(ctx):
     embed.add_field(name="`0`", value="`___`\n`___`", inline=True)
     embed.set_footer(text="")
     view = button2v2View(ctx, collection, AuthorMG, guild)
-    await ctx.respond('<@&1167993718704447519>.', embed=embed, view=view)
+    await ctx.interaction.response.send_message('<@&1167993718704447519>.',
+                                                embed=embed,
+                                                view=view)
   else:
-    await ctx.respond(
+    await ctx.interaction.response.send_message(
         """Вы не зарегестрированы.\nДля регестрации воспользуйтесь коммандой /reg"""
     )
 
 
-@bot.command(
-    description=
-    """Вызов на дуэль. В пункте player:@jarjar пинганите человека чере @""")
+@bot.command(description="Вызов на дуэль.")
 async def v1(ctx, member: discord.Member):
   db = client.get_database('Rating_data_base')
   collection = db['Collection_data']
@@ -397,22 +305,25 @@ async def v1(ctx, member: discord.Member):
 
   if check_author:
     if member.id == 1150018596307734579:
-      await ctx.respond('Я не думаю что ты способен победить меня xd')
+      await ctx.interaction.response.send_message(
+          'Я не думаю что ты способен победить меня xd')
     # Запускаем класс с кнопками если все прекрастно
     elif ctx.author.id == member.id:
-      await ctx.respond('Вы не можете вызвать самого себя')
+      await ctx.interaction.response.send_message(
+          'Вы не можете вызвать самого себя')
     else:
       if user_document:
         guild = bot.get_guild(guild_id)
         view = button1v1View(ctx, member.id, db, guild)
-        await ctx.respond(
+        await ctx.interaction.response.send_message(
             f'Вызов на столкновение игрока <@{member.id}> (`{user_document["Rating_1v1"]}`)',
             view=view)
 
       else:
-        await ctx.respond('Этот игрок не зарегестрирован.')
+        await ctx.interaction.response.send_message(
+            'Этот игрок не зарегестрирован.')
   else:
-    await ctx.respond(
+    await ctx.interaction.response.send_message(
         """Вы не зарегестрированы.\nДля регестрации воспользуйтесь коммандой /reg"""
     )
 

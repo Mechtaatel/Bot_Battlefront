@@ -11,7 +11,7 @@ class Rating_Role():
     self.guild = guild
     self.roleup(ctx, collection, Dictionaries_Team, guild)
 
-  def spisok(self, collection, id):
+  def spisok(self,collection, id):
     check_author = collection.find_one({"_id": str(id)})
     sl=[check_author['Rating_1v1'],check_author['Rating_2v2'],check_author['Rating_4v4']]
 
@@ -48,7 +48,7 @@ class Rating_Role():
         member.remove_roles(role)
         member.add_roles(guild.get_role(Roles['D'][level]))
         return 'D-1'
-    elif role.id in Roles['M']:
+    elif role.id in Roles['M'] or role.id in Roles['C']:
       return 'M'
     else:
       print('Error roles')
@@ -56,12 +56,15 @@ class Rating_Role():
   def roleup(self,ctx, collection, DT, guild):
     self.collection = collection
     level = 0
-    Roles = json.load(open('Role.json'))
+    with open('Rating_commands/Role.json') as f:
+      Roles = json.load(f)
     for i, j in DT.items():
       ii = DT[i]['id']
       member = guild.get_member(DT[i]['id'])
       levels = self.spisok(self.collection, ii)
       level = self.levelR(levels[1], 1)
       roles = member.roles
-      role = roles[1]
+      role = roles[len(roles) - 1]
+      if role.id == 1197490336075890718:
+        role = roles[len(roles) - 2]
       self.check_level(Roles, role, member, guild, level)
