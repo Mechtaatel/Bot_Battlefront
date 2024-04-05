@@ -17,6 +17,8 @@ class v1byhand(discord.ui.View):
     self.winU = None
     self.db = db
     self.guild = guild
+    self.remove_item(self.repeat)
+    self.remove_item(self.close)
 
 
 
@@ -29,6 +31,12 @@ class v1byhand(discord.ui.View):
 
       self.add_item(self.win)
       self.add_item(self.lose)
+
+      self.win.disabled = False
+      self.lose.disabled = False
+
+      self.loseU = None
+      self.winU = None
 
       await interaction.response.edit_message(view=self)
       
