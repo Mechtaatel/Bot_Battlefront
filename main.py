@@ -12,6 +12,10 @@ from Rating_commands.v1 import button1v1View
 from Rating_commands.v2 import button2v2View
 from Rating_commands.v4 import button4v4View
 
+from Rating_commands.v1byhand import v1byhand
+
+#Twitch тема:
+
 from Other_commands.switch import role_commands
 #from Rating_commands.reg import check_name_and_reg
 
@@ -87,15 +91,26 @@ async def on_ready():
 # Для других типов ошибок вы можете добавить сюда дополнительную логику обработки.
 
 
-
 @bot.event
 async def on_member_join(member):
-
+  check_author = collection.find_one({"_id": str(member.id)})
   guild = member.guild  # Получить сервер, к которому присоединился участник
   if guild.id == guild_id:
+    # Добавляем роль только что присоединившемуся участнику
     role = guild.get_role(rating_0)
     await member.add_roles(role)
-  # Добавляем роль только что присоединившемуся участнику
+    channel = guild.get_channel(1071600437209354241)
+    if check_author:
+      await channel.send(f'С возвращением, {member.mention}!')
+    else:
+      await member.send(
+  f"""Привет, {member.mention}!
+Добро пожаловать на сервер. Пройдите регистрацию коммандой /reg.
+В пункте name Укажите свой никнейм из EA, в пункте hourse укажите время проведеннное в игре."""
+      )
+      await channel.send(f'Поприветсвуем нового участника, {member.mention}!')
+    
+    
   else:
     print('Не работает')
 
@@ -137,7 +152,7 @@ async def rating(ctx):
 Режим 2 на 2:`{check_author['Rating_2v2']}`
 Режим 1 на 1:`{check_author['Rating_1v1']}`""")
   else:
-    await ctx.interaction.response.send_message(f'Вы не зарегистрированы')
+    await ctx.interaction.response.send_message('Вы не зарегистрированы')
 
 
 @bot.command(name='name', description='Узнать nickname участника')
@@ -207,7 +222,7 @@ async def reg(ctx, name: str, hourse: int):
       await ctx.interaction.response.send_message(
           f"""Имя {name} уже занято пользователем.
 Обратитесь пожалуйста в Администрацию.""")
-      return ()
+      return
     else:
       guild = bot.get_guild(guild_id)
       member = ctx.user
@@ -229,7 +244,8 @@ async def reg(ctx, name: str, hourse: int):
       collection.update_one({'_id': user_id}, {"$set": new_data}, upsert=True)
 
       await ctx.interaction.response.send_message(
-          """Поздравляем вы зарегестрированы""")
+"""Поздравляем вы зарегестрированы. Воспользуйтесь командой /help что бы узнать основные команды."""
+      )
 
 
 @bot.command(description='Вызвать в игру 4 на 4')
@@ -286,6 +302,38 @@ async def v2(ctx):
     await ctx.interaction.response.send_message(
         """Вы не зарегестрированы.\nДля регестрации воспользуйтесь коммандой /reg"""
     )
+
+
+
+
+
+@bot.command(description="Ручной ввод.")
+@commands.has_permissions(administrator=True)
+async def v1byhend(ctx, member_1: discord.Member, member_2: discord.Member):
+  db = client.get_database('Rating_data_base')
+  collection = db['Collection_data']
+  
+  member1db = collection.find_one({"_id": str(member_1.id)})
+  member2db = collection.find_one({"_id": str(member_2.id)})
+
+  if member1db:
+    if member_1.id == member_2.id:
+      await ctx.interaction.response.send_message(
+          'Вы не можете вызвать самого себя')
+    else:
+      if member2db:
+        guild = bot.get_guild(guild_id)
+        view = v1byhand(ctx, member_1.id,member_2.id, db, guild)
+        await ctx.interaction.response.send_message(
+            f'Игрок {member_1} против {member_2}',view=view)
+      else:
+        await ctx.interaction.response.send_message(
+          f'Игрок {member_2} не зарегестрирован')
+  else:
+    await ctx.interaction.response.send_message(f"Игрок {member_1} не зарегестрирован")
+
+
+
 
 
 @bot.command(description="Вызов на дуэль.")
