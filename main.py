@@ -130,6 +130,28 @@ def parse_embed_json(json_file):
     yield embed
 
 
+
+
+
+
+    
+
+@bot.command(name='say', description='Отправить сообщение от имени бота')
+@commands.has_permissions(administrator=True)
+async def say(ctx, message):
+
+  try:
+    print(f'{ctx.author} использовал команду /say')
+    await ctx.send(message)
+    # Do something with the argument.
+    ...
+  except Exception as e:
+    # Handle the error and provide a custom error message.
+    await ctx.send(f"An error occurred: {e}")
+  
+
+
+
 # И основной код выглядит так
 @bot.command(name='embed', description='Отправить embed сообщение')
 @commands.has_permissions(administrator=True)
@@ -147,28 +169,37 @@ async def rating(ctx):
   member = ctx.user
   check_author = collection.find_one({"_id": str(member.id)})
   if check_author:
-    await ctx.interaction.response.send_message(
+    await ctx.respond(
         f"""Режим 4 на 4:`{check_author['Rating_4v4']}`
 Режим 2 на 2:`{check_author['Rating_2v2']}`
 Режим 1 на 1:`{check_author['Rating_1v1']}`""")
   else:
-    await ctx.interaction.response.send_message('Вы не зарегистрированы')
+    await ctx.respond('Вы не зарегистрированы')
 
 
 
 @bot.command(name='help', description='список команд')
 async def help(ctx):
-  await ctx.interaction.response.send_message("https://discord.com/channels/1071600435607113819/")
+  await ctx.respond("https://discord.com/channels/1071600435607113819/")
 
 
 @bot.command(name='name', description='Узнать nickname участника')
 async def name(ctx, member: discord.Member):
   check_author = collection.find_one({"_id": str(member.id)})
   if check_author:
-    await ctx.interaction.response.send_message(f"`{check_author['EA_Name']}`")
+    await ctx.respond(f"`{check_author['EA_Name']}`")
   else:
-    await ctx.interaction.response.send_message(
-        f'Участник `{member.name}` не зарегистрирован')
+    await ctx.respond(f'Участник `{member.name}` не зарегистрирован')
+
+
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def reup(ctx,member: discord.Member):
+  db = client.get_database('Rating_data_base')
+  collection = db['Collection_data']
+  intcollecion = collection.find_one({"_id"})
+  print(intcollecion)
+  
 
 
 @bot.command(name='reg_byhand', description='Регистрация пользоваетля в ручную')
@@ -181,18 +212,14 @@ async def regbyhand(ctx, name: str, rating: int, member: discord.Member):
   # list_db_users = list(listdb_users)
   # idUsers = list_db_users[0]
 
-  # и `user_id` это id пользователя (ctx.author.id)
-
-  # преобразуем в строку, поскольку в JSON ключи являются строками
-  user_id = str(ctx.author.id)
   # Создаем запрос в MongoDB для поиска пользователя по id.
-  user_document = collection.find_one({"_id": user_id})
+  user_document = collection.find_one({"_id": str(member.id)})
 
   # Проверяем найден ли id пользователя в базе данных
   if user_document:
     # Получить доступ к `EA_Name` непосредственно из `user_document`
     EAName = user_document['EA_Name']
-    await ctx.interaction.response.send_message(
+    await ctx.respond(
       f'Пользователь уже зарегестрированы под никнемом {EAName}.')
 
   else:
@@ -201,11 +228,10 @@ async def regbyhand(ctx, name: str, rating: int, member: discord.Member):
     # Проверяем найден ли name пользователя в базе данных
     user_document1 = collection.find_one({"EA_Name": name})
     if user_document1:
-      await ctx.interaction.response.send_message(f"Имя {name} уже занято пользователем")
+      await ctx.respond(f"Имя {name} уже занято пользователем")
       return
     else:
       guild = bot.get_guild(guild_id)
-      member = ctx.user
       roles = member.roles
       role = roles[len(roles) - 1]
 
@@ -226,12 +252,9 @@ async def regbyhand(ctx, name: str, rating: int, member: discord.Member):
           'Ban': 'off'
       }
 
-      collection.update_one({'_id': user_id}, {"$set": new_data}, upsert=True)
-      if ctx.interaction.is_valid():
-        await ctx.interaction.response.send_message("Пользоваетль зарегестрирован.")
-      else:
-        await ctx.send.respond("Пользоваетль зарегестрирован.")
-
+      collection.update_one({'_id': str(member.id)}, {"$set": new_data}, upsert=True)
+      await ctx.respond(f"Пользоваетль {member} зарегестрирован.")
+      
 
 
 @bot.command(name='switche', description='')
@@ -240,13 +263,13 @@ async def switch(ctx, role: str):
   check_author = collection.find_one({"_id": str(ctx.author.id)})
   if check_author:
     if role == 'Light':
-      await ctx.interaction.response.send_message('Вернуться уже не получится)'
+      await ctx.respond('Вернуться уже не получится)'
                                                   )
     guild = bot.get_guild(guild_id)
     obj = role_commands(ctx, check_author, guild, role)
     await obj.switch()
   else:
-    await ctx.interaction.response.send_message(
+    await ctx.respond(
         'Вы не зарегестрированы, воспользуйтесь командой /reg')
 
 
@@ -279,7 +302,7 @@ async def reg(ctx, name: str, hourse: int):
   if user_document:
     # Получить доступ к `EA_Name` непосредственно из `user_document`
     EAName = user_document['EA_Name']
-    await ctx.interaction.response.send_message(
+    await ctx.respond(
         f'Вы уже зарегестрированы под никнемом {EAName}.')
 
   else:
@@ -288,7 +311,7 @@ async def reg(ctx, name: str, hourse: int):
     # Проверяем найден ли name пользователя в базе данных
     user_document1 = collection.find_one({"EA_Name": name})
     if user_document1:
-      await ctx.interaction.response.send_message(
+      await ctx.respond(
           f"""Имя {name} уже занято пользователем.
 Обратитесь пожалуйста в Администрацию.""")
       return
@@ -316,15 +339,10 @@ async def reg(ctx, name: str, hourse: int):
       }
 
       collection.update_one({'_id': user_id}, {"$set": new_data}, upsert=True)
-      if ctx.interaction.is_valid():
-        await ctx.interaction.response.send_message(
+      await ctx.respond(
 """Поздравляем вы зарегестрированы. Воспользуйтесь командой /help что бы узнать основные команды."""
       )
-      else:
-        await ctx.send.respond(
-"""Поздравляем вы зарегестрированы. Воспользуйтесь командой /help что бы узнать основные команды."""
-        )
-
+      
 
 @bot.command(description='Вызвать в игру 4 на 4')
 async def v4(ctx):
@@ -346,11 +364,11 @@ async def v4(ctx):
                     inline=True)
     embed.set_footer(text="")
     view = button4v4View(ctx, collection, AuthorMG, guild)
-    await ctx.interaction.response.send_message('<@&1167993718704447519>.',
+    await ctx.respond('<@&1167993718704447519>.',
                                                 embed=embed,
                                                 view=view)
   else:
-    await ctx.interaction.response.send_message(
+    await ctx.respond(
         """Вы не зарегестрированы.\nДля регестрации воспользуйтесь коммандой /reg"""
     )
 
@@ -373,11 +391,11 @@ async def v2(ctx):
     embed.add_field(name="`0`", value="`___`\n`___`", inline=True)
     embed.set_footer(text="")
     view = button2v2View(ctx, collection, AuthorMG, guild)
-    await ctx.interaction.response.send_message('<@&1167993718704447519>.',
+    await ctx.respond('<@&1167993718704447519>.',
                                                 embed=embed,
                                                 view=view)
   else:
-    await ctx.interaction.response.send_message(
+    await ctx.respond(
         """Вы не зарегестрированы.\nДля регестрации воспользуйтесь коммандой /reg"""
     )
 
@@ -396,19 +414,19 @@ async def v1byhend(ctx, member_1: discord.Member, member_2: discord.Member):
 
   if member1db:
     if member_1.id == member_2.id:
-      await ctx.interaction.response.send_message(
+      await ctx.respond(
           'Вы не можете вызвать самого себя')
     else:
       if member2db:
         guild = bot.get_guild(guild_id)
         view = v1byhand(ctx, member_1.id,member_2.id, db, guild)
-        await ctx.interaction.response.send_message(
+        await ctx.respond(
             f'Игрок {member_1} против {member_2}',view=view)
       else:
-        await ctx.interaction.response.send_message(
+        await ctx.respond(
           f'Игрок {member_2} не зарегестрирован')
   else:
-    await ctx.interaction.response.send_message(f"Игрок {member_1} не зарегестрирован")
+    await ctx.respond(f"Игрок {member_1} не зарегестрирован")
 
 
 
@@ -424,25 +442,25 @@ async def v1(ctx, member: discord.Member):
 
   if check_author:
     if member.id == 1150018596307734579:
-      await ctx.interaction.response.send_message(
+      await ctx.respond(
           'Я не думаю что ты способен победить меня xd')
     # Запускаем класс с кнопками если все прекрастно
     elif ctx.author.id == member.id:
-      await ctx.interaction.response.send_message(
+      await ctx.respond(
           'Вы не можете вызвать самого себя')
     else:
       if user_document:
         guild = bot.get_guild(guild_id)
         view = button1v1View(ctx, member.id, db, guild)
-        await ctx.interaction.response.send_message(
+        await ctx.respond(
             f'Вызов на столкновение игрока <@{member.id}> (`{user_document["Rating_1v1"]}`)',
             view=view)
 
       else:
-        await ctx.interaction.response.send_message(
+        await ctx.respond(
             'Этот игрок не зарегестрирован.')
   else:
-    await ctx.interaction.response.send_message(
+    await ctx.respond(
         """Вы не зарегестрированы.\nДля регестрации воспользуйтесь коммандой /reg"""
     )
 
