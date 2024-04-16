@@ -155,6 +155,12 @@ async def rating(ctx):
     await ctx.interaction.response.send_message('Вы не зарегистрированы')
 
 
+
+@bot.command(name='help', description='список команд')
+async def help(ctx):
+  await ctx.interaction.response.send_message("https://discord.com/channels/1071600435607113819/")
+
+
 @bot.command(name='name', description='Узнать nickname участника')
 async def name(ctx, member: discord.Member):
   check_author = collection.find_one({"_id": str(member.id)})
@@ -165,7 +171,70 @@ async def name(ctx, member: discord.Member):
         f'Участник `{member.name}` не зарегистрирован')
 
 
-@bot.command()
+@bot.command(name='reg_byhand', description='Регистрация пользоваетля в ручную')
+@commands.has_permissions(administrator=True)
+async def regbyhand(ctx, name: str, rating: int, member: discord.Member):
+  
+  db = client.get_database('Rating_data_base')
+  collection = db['Collection_data']
+  # listdb_users = db.Rating_data_base.find({})
+  # list_db_users = list(listdb_users)
+  # idUsers = list_db_users[0]
+
+  # и `user_id` это id пользователя (ctx.author.id)
+
+  # преобразуем в строку, поскольку в JSON ключи являются строками
+  user_id = str(ctx.author.id)
+  # Создаем запрос в MongoDB для поиска пользователя по id.
+  user_document = collection.find_one({"_id": user_id})
+
+  # Проверяем найден ли id пользователя в базе данных
+  if user_document:
+    # Получить доступ к `EA_Name` непосредственно из `user_document`
+    EAName = user_document['EA_Name']
+    await ctx.interaction.response.send_message(
+      f'Пользователь уже зарегестрированы под никнемом {EAName}.')
+
+  else:
+
+    #async def check_name_in_database(ctx,db, name):
+    # Проверяем найден ли name пользователя в базе данных
+    user_document1 = collection.find_one({"EA_Name": name})
+    if user_document1:
+      await ctx.interaction.response.send_message(f"Имя {name} уже занято пользователем")
+      return
+    else:
+      guild = bot.get_guild(guild_id)
+      member = ctx.user
+      roles = member.roles
+      role = roles[len(roles) - 1]
+
+      with open('Rating_commands/Role.json','r') as f:
+        vipRole = json.load(f)
+      
+      if role.id == 1197490336075890718:
+        role = roles[len(roles) - 2]
+      elif role.id not in vipRole['VIP']: 
+        await member.remove_roles(role)
+        await member.add_roles(guild.get_role(1071604948476895263))
+  
+      new_data = {
+          'EA_Name': name,
+          'Rating_1v1': rating,
+          'Rating_2v2': rating,
+          'Rating_4v4': rating,
+          'Ban': 'off'
+      }
+
+      collection.update_one({'_id': user_id}, {"$set": new_data}, upsert=True)
+      if ctx.interaction.is_valid():
+        await ctx.interaction.response.send_message("Пользоваетль зарегестрирован.")
+      else:
+        await ctx.send.respond("Пользоваетль зарегестрирован.")
+
+
+
+@bot.command(name='switche', description='')
 async def switch(ctx, role: str):
 
   check_author = collection.find_one({"_id": str(ctx.author.id)})
@@ -228,10 +297,15 @@ async def reg(ctx, name: str, hourse: int):
       member = ctx.user
       roles = member.roles
       role = roles[len(roles) - 1]
+
+      with open('Rating_commands/Role.json','r') as f:
+        vipRole = json.load(f)
       if role.id == 1197490336075890718:
         role = roles[len(roles) - 2]
-      await member.remove_roles(role)
-      await member.add_roles(guild.get_role(1071604948476895263))
+      elif role.id not in vipRole['VIP']: 
+        await member.remove_roles(role)
+        await member.add_roles(guild.get_role(1071604948476895263))
+        
 
       new_data = {
           'EA_Name': name,
@@ -242,10 +316,14 @@ async def reg(ctx, name: str, hourse: int):
       }
 
       collection.update_one({'_id': user_id}, {"$set": new_data}, upsert=True)
-
-      await ctx.interaction.response.send_message(
+      if ctx.interaction.is_valid():
+        await ctx.interaction.response.send_message(
 """Поздравляем вы зарегестрированы. Воспользуйтесь командой /help что бы узнать основные команды."""
       )
+      else:
+        await ctx.send.respond(
+"""Поздравляем вы зарегестрированы. Воспользуйтесь командой /help что бы узнать основные команды."""
+        )
 
 
 @bot.command(description='Вызвать в игру 4 на 4')
