@@ -9,7 +9,7 @@ class Rating_Role():
     self.collection = collection
     self.Dictionaries_Team = Dictionaries_Team
     self.guild = guild
-    self.roleup(ctx, collection, Dictionaries_Team, guild)
+    
 
   def spisok(self,collection, id):
     check_author = collection.find_one({"_id": str(id)})
@@ -28,32 +28,32 @@ class Rating_Role():
       l += 1
       return self.levelR(r, l)
     else:
-      return 
+      return l
 
 
-  def check_level(self, Roles, role, member, guild, level):
+  async def check_level(self, Roles, role, member, guild, level):
     if role.id in Roles['VIP']:
       return 'V'
     elif role in Roles['L']:
       if level == Roles['L'].index(role.id):
         return 'L-0'
       else:
-        member.remove_roles(role)
-        member.add_roles(guild.get_role(Roles['L'][int(level)]))
+        await member.remove_roles(role)
+        await member.add_roles(guild.get_role(Roles['L'][int(level)]))
         return 'L-1'
     elif role.id in Roles['D']:
       if level == Roles['D'].index(role.id):
         return 'D-0'
       else:
-        member.remove_roles(role)
-        member.add_roles(guild.get_role(Roles['D'][int(level)]))
+        await member.remove_roles(role)
+        await member.add_roles(guild.get_role(Roles['D'][int(level)]))
         return 'D-1'
     elif role.id in Roles['M'] or role.id in Roles['C']:
       return 'M'
     else:
       print('Error roles')
 
-  def roleup(self,ctx, collection, DT, guild):
+  async def roleup(self,ctx, collection, DT, guild):
     self.collection = collection
     level = 0
     with open('Rating_commands/Role.json') as f:
@@ -67,4 +67,4 @@ class Rating_Role():
       role = roles[len(roles) - 1]
       if role.id == 1197490336075890718:
         role = roles[len(roles) - 2]
-      self.check_level(Roles, role, member, guild, level)
+      await self.check_level(Roles, role, member, guild, level)
