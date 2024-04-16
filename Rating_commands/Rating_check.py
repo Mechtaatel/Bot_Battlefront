@@ -39,14 +39,14 @@ class Rating_Role():
         return 'L-0'
       else:
         member.remove_roles(role)
-        member.add_roles(guild.get_role(Roles['L'][level]))
+        member.add_roles(guild.get_role(Roles['L'][int(level)]))
         return 'L-1'
     elif role.id in Roles['D']:
       if level == Roles['D'].index(role.id):
         return 'D-0'
       else:
         member.remove_roles(role)
-        member.add_roles(guild.get_role(Roles['D'][level]))
+        member.add_roles(guild.get_role(Roles['D'][int(level)]))
         return 'D-1'
     elif role.id in Roles['M'] or role.id in Roles['C']:
       return 'M'
